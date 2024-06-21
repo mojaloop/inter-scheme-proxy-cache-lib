@@ -1,6 +1,6 @@
 {
   "name": "inter-scheme-proxy-cache-lib",
-  "version": "0.1.0",
+  "version": "0.1.1-snapshot.0",
   "description": "Common component, that provides scheme proxy caching mapping (ISPC)",
   "author": "Eugen Klymniuk (geka-evk)",
   "contributors": [
