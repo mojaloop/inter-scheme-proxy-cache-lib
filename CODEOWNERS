@@ -1,0 +1,6 @@
+# These owners will be the default owners for everything in
+# the repo. Unless a later match takes precedence,
+# @elnyry-sam-k @bushjames @vijayg10 @oderayi  @geka-evk
+# will be requested for review when someone opens a pull request.
+
+* @elnyry-sam-k @bushjames @vijayg10 @oderayi  @geka-evk
