@@ -23,8 +23,11 @@
  --------------
  **********/
 
-describe('Proxy cache tests -->', () => {
-  test('dummy test', () => {
-    expect(true).toBe(true);
+import * as src from '../../src';
+
+describe('Proxy-cache package API Tests -->', () => {
+  test('should export main functionality', () => {
+    expect(typeof src.createProxyCache).toBe('function');
+    // todo: add other exports
   });
 });

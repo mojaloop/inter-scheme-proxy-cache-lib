@@ -23,5 +23,29 @@
  --------------
  **********/
 
-export * from './types'; // think, if we need to export types
-export { createProxyCache } from './lib';
+import { ProxyCacheFactory, ProxyCacheConfig } from '../types';
+import { loggerFactory } from '../utils';
+import { STORAGE_TYPE_VALUES } from '../constants';
+import { ProxyCacheError } from './errors';
+
+export const createProxyCache: ProxyCacheFactory = (proxyConfig: ProxyCacheConfig) => {
+  if (!proxyConfig || typeof proxyConfig !== 'object') {
+    throw ProxyCacheError.invalidProxyCacheConfig();
+  }
+  const logger = proxyConfig.logger || loggerFactory('ProxyCache');
+
+  if (!STORAGE_TYPE_VALUES.includes(proxyConfig.type)) {
+    const error = ProxyCacheError.unsupportedProxyCacheType();
+    logger.verbose(error.message, proxyConfig);
+    throw error;
+  }
+
+  // todo: - check if the rest options are valid (or need to be created from env vars)
+  //       - instantiate the proxy-cache (based on the proxyConfig)
+  return {
+    async get(key: string) {
+      logger.info('get', key);
+      return 'Not implemented';
+    },
+  };
+};

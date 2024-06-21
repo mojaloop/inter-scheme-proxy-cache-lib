@@ -23,5 +23,18 @@
  --------------
  **********/
 
-export * from './types'; // think, if we need to export types
-export { createProxyCache } from './lib';
+import { ProxyCacheConfig } from '#src/types';
+import { createProxyCache } from '#src/lib';
+import { ProxyCacheError } from '#src/lib/errors';
+
+describe('createProxyCache Tests -->', () => {
+  test('should throw error if no proxyConfig provided', () => {
+    expect(createProxyCache).toThrow(ProxyCacheError.invalidProxyCacheConfig());
+  });
+
+  test('should throw error if proxyConfig has no type field', () => {
+    expect(() => {
+      createProxyCache({} as ProxyCacheConfig);
+    }).toThrow(ProxyCacheError.unsupportedProxyCacheType());
+  });
+});
