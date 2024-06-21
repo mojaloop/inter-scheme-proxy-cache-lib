@@ -44,6 +44,7 @@ defaults_npm_publish_release: &defaults_npm_publish_release
   command: |
     source $BASH_ENV
     echo "Publishing tag $RELEASE_TAG"
+    npm run build
     npm publish --tag $RELEASE_TAG --access public
 
 defaults_export_version_from_package: &defaults_export_version_from_package
