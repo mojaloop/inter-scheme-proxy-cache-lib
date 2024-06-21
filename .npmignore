@@ -1,0 +1,11 @@
+node_modules/
+npm-debug.log
+
+src/
+test/
+coverage/
+
+jest.config.js
+tsconfig.json
+tsconfig.test.json
+tsup.config.ts
