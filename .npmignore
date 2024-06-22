@@ -9,6 +9,3 @@ jest.config.js
 tsconfig.json
 tsconfig.test.json
 tsup.config.ts
-
-!docs-html/
-!docs-md/
