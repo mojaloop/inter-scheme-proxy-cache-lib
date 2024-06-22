@@ -35,6 +35,7 @@ export type InMemoryProxyCacheConfig = BasicProxyCacheConfig;
 export type BasicProxyCacheConfig = {
   type: StorageType;
   logger?: ILogger;
+  timeout?: number;
   jsonMode?: boolean;
 };
 
