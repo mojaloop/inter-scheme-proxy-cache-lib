@@ -5,9 +5,8 @@ import mlLogger from '@mojaloop/central-services-logger';
   1. All 'is{Level}Enabled' should be functions (which return boolean), and NOT just boolean.
   2. Impl. has isPerfEnabled/perf, isAuditEnabled/audit, isTraceEnabled/trace methods, which don't exist on WinstonLogger type.
  */
+import { ILogger, LogContext, LogMeta, Json, LogLevel, logLevelsMap } from '../types';
 import config from '../config';
-import { ILogger } from '../types';
-import { LogContext, LogMeta, Json, LogLevel, logLevelsMap } from './types';
 
 interface AnyError extends Error {
   code?: string;

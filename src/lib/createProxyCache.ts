@@ -27,6 +27,7 @@ import { ProxyCacheFactory, ProxyCacheConfig } from '../types';
 import { loggerFactory } from '../utils';
 import { STORAGE_TYPE_VALUES } from '../constants';
 import { ProxyCacheError } from './errors';
+import * as storages from './storages';
 
 export const createProxyCache: ProxyCacheFactory = (proxyConfig: ProxyCacheConfig) => {
   if (!proxyConfig || typeof proxyConfig !== 'object') {
@@ -40,12 +41,10 @@ export const createProxyCache: ProxyCacheFactory = (proxyConfig: ProxyCacheConfi
     throw error;
   }
 
-  // todo: - check if the rest options are valid (or need to be created from env vars)
-  //       - instantiate the proxy-cache (based on the proxyConfig)
-  return {
-    async get(key: string) {
-      logger.info('get', key);
-      return 'Not implemented';
-    },
-  };
+  switch (proxyConfig.type) {
+    case 'in-memory':
+      return new storages.InMemoryProxyCache({ ...proxyConfig, logger });
+    default:
+      throw new Error('Not implemented yet');
+  }
 };

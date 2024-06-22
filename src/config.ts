@@ -1,6 +1,5 @@
 import convict from 'convict';
-import { LibConfig } from './types';
-import { logLevelValues, logLevelsMap } from './utils/types';
+import { LibConfig, logLevelValues, logLevelsMap } from './types';
 
 const config = convict<LibConfig>({
   logLevel: {

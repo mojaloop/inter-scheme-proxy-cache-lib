@@ -24,7 +24,7 @@ export type LogLevel = (typeof logLevelValues)[number];
 export type LogContext = Json | string | null;
 export type LogMeta = unknown; //  Json | Error | null;
 
-type LogMethod = (message: string, meta?: LogMeta) => void;
+export type LogMethod = (message: string, meta?: LogMeta) => void;
 export type LogMethods = {
   [key in LogLevel]: LogMethod;
 } & {
