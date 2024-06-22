@@ -24,4 +24,5 @@
  **********/
 
 export * from './types'; // think, if we need to export types
+export * from './constants';
 export { createProxyCache } from './lib';
