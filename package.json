@@ -26,15 +26,15 @@
     "test:functional": "echo \"ACTION: Add functional test here, or remove this script. Also check CI configs to comment out the necessary job'\"",
     "lint": "eslint ./src/**/*.ts ./test/**/*.ts",
     "lint:fix": "npm run lint -- --fix",
-    "build": "tsc",
-    "watch": "tsc -w",
+    "build": "tsup",
     "audit:resolve": "npx resolve-audit --production",
     "audit:check": "npx check-audit --production",
     "dep:check": "npx --no-install ncu -e 2",
     "dep:update": "npx --no-install ncu -u",
     "release": "npx standard-version --no-verify --releaseCommitMessageFormat 'ci(release): {{currentTag}} [skip ci]'",
     "snapshot": "npx standard-version --no-verify --skip.changelog --prerelease snapshot --releaseCommitMessageFormat 'ci(snapshot): {{currentTag}}'",
-    "prepare": "husky || true"
+    "prepare": "husky || true",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@mojaloop/central-services-logger": "^11.3.1",
