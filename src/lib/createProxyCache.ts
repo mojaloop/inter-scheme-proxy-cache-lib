@@ -25,7 +25,7 @@
 
 import { ProxyCacheFactory, ProxyCacheConfig } from '../types';
 import { loggerFactory } from '../utils';
-import { STORAGE_TYPE_VALUES } from '../constants';
+import { STORAGE_TYPES } from '../constants';
 import { ProxyCacheError } from './errors';
 import * as storages from './storages';
 
@@ -35,16 +35,15 @@ export const createProxyCache: ProxyCacheFactory = (proxyConfig: ProxyCacheConfi
   }
   const logger = proxyConfig.logger || loggerFactory('ProxyCache');
 
-  if (!STORAGE_TYPE_VALUES.includes(proxyConfig.type)) {
-    const error = ProxyCacheError.unsupportedProxyCacheType();
-    logger.verbose(error.message, proxyConfig);
-    throw error;
-  }
-
   switch (proxyConfig.type) {
-    case 'in-memory':
-      return new storages.InMemoryProxyCache({ ...proxyConfig, logger });
-    default:
-      throw new Error('Not implemented yet');
+    case STORAGE_TYPES.redis:
+      return new storages.RedisProxyCache({ ...proxyConfig, logger });
+    case STORAGE_TYPES.mysql:
+      throw new Error('Mysql storage is not implemented yet');
+    default: {
+      const error = ProxyCacheError.unsupportedProxyCacheType();
+      logger.warn(error.message, proxyConfig);
+      throw error;
+    }
   }
 };

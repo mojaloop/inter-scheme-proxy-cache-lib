@@ -1,1 +1,1 @@
-export * from './InMemoryProxyCache';
+export * from './RedisProxyCache';

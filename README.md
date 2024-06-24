@@ -23,9 +23,9 @@ import { createProxyCache } from '@mojaloop/inter-scheme-proxy-cache-lib';
 // CJS
 const { createProxyCache } = require('@mojaloop/inter-scheme-proxy-cache-lib');
 
-const proxyCache = createProxyCache({ type: 'in-memory' });
+const proxyCache = createProxyCache({ type: 'redis', ... });
 // todo: define usefull example
-await proxyCache.set('proxyId_1', { url: 'https://hab-a/proxy' });
+await proxyCache.addDfspIdToProxyMapping('proxyId_1', { url: 'https://hab-a/proxy' });
 ```
 
 ### TypeDoc
@@ -35,8 +35,8 @@ could be found [**here**](https://mojaloop.github.io/inter-scheme-proxy-cache-li
 
 ### API
 ```typescript
- proxyCache.get('proxyId')
- // Get the proxyAdapter details by proxyId
+ addDfspIdToProxyMapping: (dfspId: string, details: PoxyDetails) => Promise<boolean>;
+ // Add the proxyAdapter details of a particular DFSP to proxy mapping
 
  ...
  // todo: add all methods
