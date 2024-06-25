@@ -1,56 +1,168 @@
-import { IProxyCache, RedisProxyCacheConfig, PoxyDetails } from '../../types';
+import Redis from 'ioredis';
+// todo: think, how to avoid direct deps on Redis class (move to a separate fn?)
 
-// todo: add complete impl.
+import { REDIS_KEYS_PREFIXES, REDIS_SUCCESS, REDIS_IS_CONNECTED_STATUSES } from './constants';
+import { IProxyCache, RedisProxyCacheConfig, IsLastFailure, AlsRequestDetails, ILogger } from '../../types';
+
 export class RedisProxyCache implements IProxyCache {
-  constructor(private readonly options: RedisProxyCacheConfig) {}
+  private readonly redisClient: Redis;
+  private readonly log: ILogger;
 
-  async lookupProxyByDfspId(dfspId: string): Promise<PoxyDetails | null> {
-    this.options.logger?.warn('Not implemented', { dfspId });
-    // todo: think how to avoid logger?...
-    return null;
+  constructor(private readonly proxyConfig: RedisProxyCacheConfig) {
+    this.log = proxyConfig.logger!.child(this.constructor.name);
+    this.redisClient = this.createRedisClient(proxyConfig);
   }
 
-  async addDfspIdToProxyMapping(dfspId: string, details: PoxyDetails): Promise<boolean> {
-    this.options.logger?.warn('Not implemented', { dfspId, details });
-    return false;
+  async addDfspIdToProxyMapping(dfspId: string, proxyId: string): Promise<boolean> {
+    const key = RedisProxyCache.formatDfspCacheKey(dfspId);
+    const response = await this.redisClient.set(key, proxyId);
+    const isAdded = response === REDIS_SUCCESS;
+    this.log.debug('proxyMapping is added', { key, proxyId, isAdded });
+    return isAdded;
+  }
+
+  async lookupProxyByDfspId(dfspId: string): Promise<string | null> {
+    const key = RedisProxyCache.formatDfspCacheKey(dfspId);
+    const proxyId = await this.redisClient.get(key);
+    this.log.debug('lookupProxyByDfspId is done', { key, proxyId });
+    return proxyId;
   }
 
   async removeDfspIdFromProxyMapping(dfspId: string): Promise<boolean> {
-    this.options.logger?.warn('Not implemented', { dfspId });
-    return false;
+    const key = RedisProxyCache.formatDfspCacheKey(dfspId);
+    const result = await this.redisClient.del(key);
+    const isRemoved = result === 1;
+    this.log.debug('proxyMapping is removed', { key, isRemoved, result });
+    return isRemoved;
   }
 
-  async removeFromSendToProxiesList(partyId: string, proxyId: string): Promise<boolean> {
-    this.options.logger?.warn('Not implemented', { partyId, proxyId });
-    return false;
+  async setSendToProxiesList(alsReq: AlsRequestDetails, proxyIds: string[], ttlSec: number): Promise<boolean> {
+    const key = RedisProxyCache.formatAlsCacheKey(alsReq);
+
+    const isExists = await this.redisClient.exists(key);
+    if (isExists) {
+      this.log.warn('sendToProxiesList already exists', { key });
+      return false;
+    }
+
+    const uniqueProxyIds = [...new Set(proxyIds)];
+    const [addedCount] = await this.executePipeline([
+      ['sadd', key, uniqueProxyIds],
+      ['expire', key, ttlSec],
+    ]);
+    const isOk = addedCount === uniqueProxyIds.length;
+    this.log.verbose('setSendToProxiesList is done', { isOk, key, uniqueProxyIds, ttlSec });
+    return isOk;
   }
 
-  async setSendToProxiesList(partyId: string, proxyIds: string[]): Promise<void> {
-    this.options.logger?.warn('Not implemented', { partyId, proxyIds });
+  async receivedSuccessResponse(alsReq: AlsRequestDetails): Promise<boolean> {
+    const key = RedisProxyCache.formatAlsCacheKey(alsReq);
+    const delResult = await this.redisClient.del(key);
+    const isDeleted = delResult === 1;
+    this.log.debug('sendToProxiesList is deleted', { isDeleted, delResult });
+    return isDeleted;
   }
 
-  async checkIfLastErrorCallbackFromSendToProxiesList(partyId: string, proxyId: string): Promise<boolean> {
-    this.options.logger?.warn('Not implemented', { partyId, proxyId });
-    return false;
-  }
+  async receivedErrorResponse(alsReq: AlsRequestDetails, proxyId: string): Promise<IsLastFailure> {
+    const key = RedisProxyCache.formatAlsCacheKey(alsReq);
 
-  async cleanupSendToProxiesList(partyId: string): Promise<boolean> {
-    this.options.logger?.warn('Not implemented', { partyId });
-    return false;
+    const [delCount, card] = await this.executePipeline([
+      ['srem', key, proxyId],
+      ['scard', key],
+    ]);
+    const isLast = delCount === 1 && card === 0;
+
+    this.log.warn('receivedErrorResponse is done', { isLast, alsReq, delCount, card });
+    return isLast;
   }
 
   async connect(): Promise<boolean> {
-    this.options.logger?.warn('Not implemented');
-    return false;
+    if (this.isConnected) {
+      this.log.warn('proxyCache is already connected');
+      return true;
+    }
+    await this.redisClient.connect();
+    const { status } = this.redisClient;
+    this.log.info('proxyCache is connected', { status });
+    return true;
   }
 
   async disconnect(): Promise<boolean> {
-    this.options.logger?.warn('Not implemented');
-    return false;
+    const response = await this.redisClient.quit();
+    const isDisconnected = response === REDIS_SUCCESS;
+    this.redisClient.removeAllListeners();
+    this.log.info('proxyCache is disconnected', { isDisconnected, response });
+    return isDisconnected;
   }
 
   async healthCheck(): Promise<boolean> {
-    this.options.logger?.warn('Not implemented');
-    return false;
+    try {
+      const response = await this.redisClient.ping();
+      const isHealthy = response === 'PONG';
+      this.log.debug('healthCheck ping response', { isHealthy, response });
+      return isHealthy;
+    } catch (err: unknown) {
+      this.log.warn('healthCheck error', err);
+      return false;
+    }
+  }
+
+  get isConnected(): boolean {
+    const isConnected = REDIS_IS_CONNECTED_STATUSES.includes(this.redisClient.status);
+    this.log.debug('isConnected', { isConnected });
+    return isConnected;
+  }
+
+  private createRedisClient(proxyConfig: RedisProxyCacheConfig) {
+    const { log } = this;
+    const redisClient = new Redis(proxyConfig);
+    // prettier-ignore
+    redisClient
+      .on('error', (err) => { log.error('redis connection error', err); })
+      .on('close', () => { log.info('redis connection closed'); })
+      .on('end', () => { log.warn('redis connection ended'); })
+      .on('reconnecting', (ms: number) => { log.info('redis connection reconnecting', { ms }); })
+      .on('connect', () => { log.verbose('redis connection is established'); })
+      .on('ready', () => { log.info('redis connection is ready'); });
+
+    return redisClient;
+  }
+
+  private async executePipeline(commands: [string, ...any[]][]): Promise<unknown[]> {
+    const pipeline = this.redisClient.pipeline();
+
+    commands.forEach(([command, ...args]) => {
+      // @ts-expect-error TS7052: Element implicitly has an any type because type ChainableCommander has no index signature
+      if (typeof pipeline[command] === 'function') pipeline[command](...args);
+      else this.log.warn('unknown redis command', { command, args });
+    });
+
+    try {
+      const results = await pipeline.exec();
+      if (!results) {
+        throw new Error('no pipeline results');
+      }
+      return results.map((result, index) => {
+        if (result[0]) {
+          const errMessage = `error in command ${index + 1}: ${result[0].message}`;
+          this.log.warn(errMessage, result[0]);
+          // todo: (!) think, how to undo successful commands
+          throw new Error(errMessage);
+        }
+        return result[1];
+      });
+    } catch (error: unknown) {
+      this.log.error('pipeline execution failed', error);
+      return [];
+    }
+  }
+
+  static formatAlsCacheKey(alsReq: AlsRequestDetails): string {
+    // todo: add alsReq validation (for JS usage case)
+    return `${REDIS_KEYS_PREFIXES.als}:${alsReq.sourceId}:${alsReq.type}:${alsReq.partyId}`;
+  }
+
+  static formatDfspCacheKey(dfspId: string): string {
+    return `${REDIS_KEYS_PREFIXES.dfsp}:${dfspId}`;
   }
 }

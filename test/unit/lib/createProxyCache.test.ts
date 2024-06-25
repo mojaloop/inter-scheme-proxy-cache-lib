@@ -23,18 +23,28 @@
  --------------
  **********/
 
-import { ProxyCacheConfig } from '#src/types';
 import { createProxyCache } from '#src/lib';
+import { RedisProxyCache } from '#src/lib/storages';
+import { ProxyCacheConfig, StorageType } from '#src/types';
+import { STORAGE_TYPES } from '#src/constants';
 import { ProxyCacheError } from '#src/lib/errors';
 
 describe('createProxyCache Tests -->', () => {
-  test('should throw error if no proxyConfig provided', () => {
-    expect(createProxyCache).toThrow(ProxyCacheError.invalidProxyCacheConfig());
-  });
-
   test('should throw error if proxyConfig has no type field', () => {
     expect(() => {
-      createProxyCache({} as ProxyCacheConfig);
+      createProxyCache('xxx' as StorageType, {} as ProxyCacheConfig);
     }).toThrow(ProxyCacheError.unsupportedProxyCacheType());
+  });
+
+  test('should throw error if no proxyConfig provided', () => {
+    expect(() => {
+      // @ts-expect-error TS2554: Expected 2 arguments, but got 1
+      createProxyCache(STORAGE_TYPES.redis);
+    }).toThrow(ProxyCacheError.invalidProxyCacheConfig());
+  });
+
+  test('should create RedisProxyCache instance', () => {
+    const proxyCache = createProxyCache(STORAGE_TYPES.redis, {} as ProxyCacheConfig);
+    expect(proxyCache).toBeInstanceOf(RedisProxyCache);
   });
 });

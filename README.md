@@ -19,13 +19,17 @@ npm install @mojaloop/inter-scheme-proxy-cache-lib
 
 ```typescript
 // ESM
-import { createProxyCache } from '@mojaloop/inter-scheme-proxy-cache-lib';
+import { createProxyCache, STORAGE_TYPES } from '@mojaloop/inter-scheme-proxy-cache-lib';
 // CJS
 const { createProxyCache } = require('@mojaloop/inter-scheme-proxy-cache-lib');
 
-const proxyCache = createProxyCache({ type: 'redis', ... });
+const proxyCache = createProxyCache(STORAGE_TYPES.redis, { 
+  host: localhost,
+  port: 6379,
+  ...
+});
 // todo: define usefull example
-await proxyCache.addDfspIdToProxyMapping('proxyId_1', { url: 'https://hab-a/proxy' });
+await proxyCache.addDfspIdToProxyMapping('dfsp_1', 'proxyAB');
 ```
 
 ### TypeDoc
@@ -35,7 +39,7 @@ could be found [**here**](https://mojaloop.github.io/inter-scheme-proxy-cache-li
 
 ### API
 ```typescript
- addDfspIdToProxyMapping: (dfspId: string, details: PoxyDetails) => Promise<boolean>;
+ addDfspIdToProxyMapping: (dfspId: string, proxyId: string) => Promise<boolean>;
  // Add the proxyAdapter details of a particular DFSP to proxy mapping
 
  ...
