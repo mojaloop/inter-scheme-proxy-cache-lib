@@ -560,6 +560,7 @@ workflows:
             - test-lint
             - test-unit
             - test-coverage
+            - test-integration
             - vulnerability-check
             - audit-licenses
           filters:
@@ -583,6 +584,7 @@ workflows:
             - test-lint
             - test-unit
             - test-coverage
+            - test-integration
             - vulnerability-check
             - audit-licenses
           filters:
@@ -598,6 +600,7 @@ workflows:
             - test-lint
             - test-unit
             - test-coverage
+            - test-integration
             - vulnerability-check
             - audit-licenses
           filters:
