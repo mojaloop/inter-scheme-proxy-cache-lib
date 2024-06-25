@@ -269,6 +269,10 @@ jobs:
       - run:
           name: Execute integration tests
           command: |
+            source ~/.profile
+            pwd
+            ls
+            node --version
             docker compose build
             docker compose up -d
             npm run test:int
