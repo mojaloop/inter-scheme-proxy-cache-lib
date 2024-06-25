@@ -24,7 +24,7 @@ import { createProxyCache, STORAGE_TYPES } from '@mojaloop/inter-scheme-proxy-ca
 const { createProxyCache } = require('@mojaloop/inter-scheme-proxy-cache-lib');
 
 const proxyCache = createProxyCache(STORAGE_TYPES.redis, { 
-  host: localhost,
+  host: 'localhost',
   port: 6379,
   ...
 });
