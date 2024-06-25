@@ -25,6 +25,16 @@ defaults_docker_Dependencies: &defaults_docker_Dependencies |
     apk --no-cache add bash bash-doc bash-completion
     npm install -g node-gyp
 
+defaults_machine_Dependencies: &defaults_machine_Dependencies |
+  ## Add Package Repos
+  ## Ref: https://docs.confluent.io/platform/current/installation/installing_cp/deb-ubuntu.html#get-the-software
+  wget -qO - https://packages.confluent.io/deb/7.4/archive.key | sudo apt-key add -
+  sudo add-apt-repository -y "deb https://packages.confluent.io/clients/deb $(lsb_release -cs) main"
+
+  ## Install deps
+  sudo apt install -y curl bash musl-dev libsasl2-dev
+  sudo ln -s /usr/lib/x86_64-linux-musl/libc.so /lib/libc.musl-x86_64.so.1
+
 defaults_awsCliDependencies: &defaults_awsCliDependencies |
     apk --no-cache add aws-cli
 
@@ -245,11 +255,10 @@ jobs:
 
   test-integration:
     executor: default-machine
-#    executor: default-docker
     steps:
       - run:
           name: Install general dependencies
-          command: *defaults_docker_Dependencies
+          command: *defaults_machine_Dependencies
       - checkout
       - run:
           <<: *defaults_configure_nvm
