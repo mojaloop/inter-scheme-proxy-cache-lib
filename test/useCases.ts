@@ -28,6 +28,11 @@ import { IProxyCache } from '#src/types';
 
 import * as fixtures from '#test/fixtures';
 
+/*
+  Use cases to check any IProxyCache implementations.
+  So don't add here any particular class or details of implementation, use only interface methods/props.
+ */
+
 export const proxyMappingUseCase = async (proxyCache: IProxyCache) => {
   expect(proxyCache.isConnected).toBe(true);
 

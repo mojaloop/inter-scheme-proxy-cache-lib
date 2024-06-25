@@ -1,5 +1,5 @@
 import Redis from 'ioredis';
-// todo: think, hwo to avoid direct deps on Redis class (move to a separate fn?)
+// todo: think, how to avoid direct deps on Redis class (move to a separate fn?)
 
 import { REDIS_KEYS_PREFIXES, REDIS_SUCCESS, REDIS_IS_CONNECTED_STATUSES } from './constants';
 import { IProxyCache, RedisProxyCacheConfig, IsLastFailure, AlsRequestDetails, ILogger } from '../../types';
