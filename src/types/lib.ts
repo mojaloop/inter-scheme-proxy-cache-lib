@@ -4,37 +4,46 @@ import { LogMethods, LogContext, LogLevel } from './utils';
 export type StorageType = (typeof storageTypeValues)[number];
 
 export interface IProxyCache {
-  addDfspIdToProxyMapping: (dfspId: string, details: PoxyDetails) => Promise<boolean>;
-  lookupProxyByDfspId: (dfspId: string) => Promise<PoxyDetails | null>;
+  addDfspIdToProxyMapping: (dfspId: string, proxyId: string) => Promise<boolean>;
+  lookupProxyByDfspId: (dfspId: string) => Promise<string | null>;
   removeDfspIdFromProxyMapping: (dfspId: string) => Promise<boolean>;
-  // todo: think, if we need this method
 
-  setSendToProxiesList: (partyId: string, proxyIds: string[]) => Promise<void>;
-  checkIfLastErrorCallbackFromSendToProxiesList: (partyId: string, proxyId: string) => Promise<boolean>;
-  cleanupSendToProxiesList: (partyId: string) => Promise<boolean>; // should be called on successful callback
-
-  checkJwsSignature?: (jws: string) => Promise<boolean>;
-  // todo: think, if we need this method in IProxyCache
+  setSendToProxiesList: (alsRequest: AlsRequestDetails, proxyIds: string[], ttlSec: number) => Promise<boolean>;
+  receivedSuccessResponse: (alsRequest: AlsRequestDetails) => Promise<boolean>;
+  receivedErrorResponse: (alsRequest: AlsRequestDetails, proxyId: string) => Promise<IsLastFailure>;
+  // if (IsLastFailure === true) - send error callback to source/type/id
 
   connect: () => Promise<boolean>;
   disconnect: () => Promise<boolean>;
   healthCheck: () => Promise<boolean>;
+  isConnected: boolean;
 }
 
-export type PoxyDetails = {
-  url: string;
-  // todo: think, if we need any other info
+export type PartyIdType = string; // todo: use enum for this type
+
+export type AlsRequestDetails = {
+  sourceId: string;
+  type: PartyIdType;
+  partyId: string;
 };
 
-export type ProxyCacheFactory = (cacheConfig: ProxyCacheConfig) => IProxyCache;
-// todo: update signature to: (type: StorageType, proxyConfig?: ProxyCacheConfig) => IProxyCache
+export type IsLastFailure = boolean;
+
+export type ProxyCacheFactory = (type: StorageType, proxyConfig: ProxyCacheConfig) => IProxyCache;
+// todo: thin about making proxyConfig optional, and assemble it using env vars if it wasn't passed
 
 export type ProxyCacheConfig = RedisProxyCacheConfig | MySqlProxyCacheConfig;
 // think, if it's better to rename to ProxyCacheOptions
 
 export type RedisProxyCacheConfig = BasicProxyCacheConfig & {
-  connection: string;
-  // todo: add redis-specific options
+  host: string;
+  port: number;
+  username?: string;
+  password?: string;
+  lazyConnect?: boolean; // Defaults to false
+  // db: number; // Defaults to 0
+  // tls?: ConnectionOptions
+  // todo: define all needed options
 };
 
 export type MySqlProxyCacheConfig = BasicProxyCacheConfig & {
@@ -43,7 +52,6 @@ export type MySqlProxyCacheConfig = BasicProxyCacheConfig & {
 };
 
 export type BasicProxyCacheConfig = {
-  type: StorageType;
   logger?: ILogger; // think, if we need to add possibility to provide custom logger impl.
   timeout?: number;
 };
