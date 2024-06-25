@@ -30,7 +30,7 @@ import { loggerFactory } from '#src/utils';
 import * as useCases from '#test/useCases';
 import * as fixtures from '#test/fixtures';
 
-const logger = loggerFactory('int.test');
+const logger = loggerFactory('iTests');
 
 const port = parseInt(env.REDIS_PORT || '');
 // todo: use convict
