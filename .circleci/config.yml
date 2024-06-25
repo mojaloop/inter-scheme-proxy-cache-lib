@@ -243,6 +243,27 @@ jobs:
       - store_test_results:
           path: coverage
 
+  test-integration:
+    executor: default-docker
+    steps:
+      - run:
+          name: Install general dependencies
+          command: *defaults_docker_Dependencies
+      - checkout
+      - run:
+          <<: *defaults_configure_nvm
+      - run:
+          <<: *defaults_display_versions
+      - restore_cache:
+          key: dependency-cache-{{ .Environment.CIRCLE_SHA1 }}
+      - run:
+          name: Execute integration tests
+          command: |
+            docker compose build
+            docker compose up -d
+            npm run test:int
+            docker compose down -v
+
   vulnerability-check:
     executor: default-docker
     steps:
@@ -441,7 +462,7 @@ workflows:
           context: org-global
       - setup:
           context: org-global
-          filters:
+          filters: &BUILD_AND_TEST_FILTERS
             tags:
               only: /.*/
             branches:
@@ -493,6 +514,11 @@ workflows:
               ignore:
                 - /feature*/
                 - /bugfix*/
+      - test-integration:
+          context: org-global
+          requires:
+            - setup
+          filters: *BUILD_AND_TEST_FILTERS
       - vulnerability-check:
           context: org-global
           requires:
