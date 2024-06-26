@@ -1,4 +1,4 @@
-# inter-scheme-proxy-cache-lib
+# @mojaloop/inter-scheme-proxy-cache-lib
 
 `inter-scheme-proxy-cache-lib` is a common component that provides proxy caching mapping.
 It helps reliably integrate proxy functionality throughout the all involved services.
@@ -33,3 +33,7 @@ npm start
 ```bash
 npm test
 ```
+
+## Collaborators
+
+- [Eugen Klymniuk](https://github.com/geka-evk)
