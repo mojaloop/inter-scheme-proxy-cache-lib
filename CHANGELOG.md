@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.0.0](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/compare/v0.3.3...v1.0.0) (2024-06-26)
+
+
+### Features
+
+* **csi-15:** added ajv validation ([5b57f16](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/5b57f1650079384603df439cc1b733c89b3104b7))
+* **csi-15:** updated docs ([cf1aefd](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/cf1aefd1bf4e4fba38d4069fa145d16f5fabe64e))
+
+
+### Chore
+
+* **csi-15:** cleanup ([5be321d](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/5be321d1bf3b387236ec6a0ea48dfaa8884b43d3))
+* **csi-15:** pushed latest tag ([d7eda9c](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/d7eda9c7b446b966e7f7986c48569ef5be9582af))
+* **csi-15:** updated deps ([dfcb030](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/dfcb030f4b0dcb0e1866831a076be48c18940064))
+* **csi-162:** added test-integration to publish job ([9ba4ee1](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/9ba4ee10bebfc08690c587066851d047441daa7d))
+* **csi-162:** reverted npm publish --tag ([d62a976](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/d62a9764d2e4320403f1298d469301b1f39fd7d3))
+* **csi-162:** reverted npm publish --tag ([96853fe](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/96853fe4e2f2ddf1f964e110fa8470a0d8762114))
+
 ### [0.3.3](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/compare/v0.3.2...v0.3.3) (2024-06-26)
 
 
