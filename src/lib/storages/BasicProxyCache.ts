@@ -23,11 +23,14 @@
  --------------
  **********/
 
-import * as src from '../../src';
+import { ILogger, BasicProxyCacheConfig } from '../../types';
+import { loggerFactory } from '../../utils';
 
-describe('Proxy-cache package API Tests -->', () => {
-  test('should export main functionality', () => {
-    expect(typeof src.createProxyCache).toBe('function');
-    // todo: add other exports
-  });
-});
+export abstract class BasicProxyCache<CacheConfig extends BasicProxyCacheConfig> {
+  protected readonly log: ILogger;
+
+  constructor(private readonly proxyConfig: CacheConfig) {
+    this.log = loggerFactory(this.constructor.name);
+  }
+  // define any common methods here
+}

@@ -23,11 +23,22 @@
  --------------
  **********/
 
-import * as src from '../../src';
+import RedisMock, { RedisOptions } from 'ioredis-mock';
 
-describe('Proxy-cache package API Tests -->', () => {
-  test('should export main functionality', () => {
-    expect(typeof src.createProxyCache).toBe('function');
-    // todo: add other exports
-  });
-});
+/*
+  ioredis-mock doesn't provide a status-field, so we need to override it here
+ */
+export class IoRedisMock extends RedisMock {
+  private readonly lazyConnect: boolean;
+  public connected: boolean = false;
+
+  constructor(opts: RedisOptions) {
+    super(opts);
+    this.lazyConnect = Boolean(opts?.lazyConnect);
+  }
+
+  // @ts-expect-error TS2611: status is defined as a property in class Redis, but is overridden here in IoRedisMock as an accessor
+  get status() {
+    return this.connected ? 'ready' : this.lazyConnect ? 'wait' : 'end';
+  }
+}

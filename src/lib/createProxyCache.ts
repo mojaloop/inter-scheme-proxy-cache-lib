@@ -23,11 +23,27 @@
  --------------
  **********/
 
-import * as src from '../../src';
+import { ProxyCacheFactory, StorageType, ProxyCacheConfig } from '../types';
+import { loggerFactory } from '../utils';
+import { STORAGE_TYPES } from '../constants';
+import { ProxyCacheError } from './errors';
+import * as storages from './storages';
 
-describe('Proxy-cache package API Tests -->', () => {
-  test('should export main functionality', () => {
-    expect(typeof src.createProxyCache).toBe('function');
-    // todo: add other exports
-  });
-});
+export const createProxyCache: ProxyCacheFactory = (type: StorageType, proxyConfig: ProxyCacheConfig) => {
+  if (!proxyConfig || typeof proxyConfig !== 'object') {
+    throw ProxyCacheError.invalidProxyCacheConfig();
+  }
+  const logger = loggerFactory('createProxyCache');
+
+  switch (type) {
+    case STORAGE_TYPES.redis:
+      return new storages.RedisProxyCache(proxyConfig);
+    case STORAGE_TYPES.mysql:
+      throw new Error('Mysql storage is not implemented yet');
+    default: {
+      const error = ProxyCacheError.unsupportedProxyCacheType();
+      logger.warn(error.message, proxyConfig);
+      throw error;
+    }
+  }
+};

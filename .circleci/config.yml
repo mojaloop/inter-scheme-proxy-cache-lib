@@ -51,7 +51,7 @@ defaults_npm_auth: &defaults_npm_auth
 
 defaults_npm_publish_release: &defaults_npm_publish_release
   name: Publish NPM $RELEASE_TAG artifact
-  command: |
+  command: |   
     source $BASH_ENV
     npm ci
     echo "Publishing tag $RELEASE_TAG"

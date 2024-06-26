@@ -23,11 +23,45 @@
  --------------
  **********/
 
-import * as src from '../../src';
+/** @hidden */
+export interface ILogger extends LogMethods {
+  child(context?: LogContext): ILogger;
+}
 
-describe('Proxy-cache package API Tests -->', () => {
-  test('should export main functionality', () => {
-    expect(typeof src.createProxyCache).toBe('function');
-    // todo: add other exports
-  });
-});
+// prettier-ignore
+export type Json =
+  | string
+  | number
+  | boolean
+  | { [x: string]: Json }
+  | Array<Json>;
+
+/** @hidden */
+export const logLevelsMap = {
+  error: 'error',
+  warn: 'warn',
+  info: 'info',
+  verbose: 'verbose',
+  debug: 'debug',
+  silly: 'silly',
+  audit: 'audit',
+  trace: 'trace',
+  perf: 'perf',
+} as const;
+// todo: import from @mojaloop/central-services-logger
+export const logLevelValues = Object.values(logLevelsMap);
+
+export type LogLevel = (typeof logLevelValues)[number];
+/** @hidden */
+export type LogContext = Json | string | null;
+/** @hidden */
+export type LogMeta = unknown; //  Json | Error | null;
+
+/** @hidden */
+export type LogMethod = (message: string, meta?: LogMeta) => void;
+/** @hidden */
+export type LogMethods = {
+  [key in LogLevel]: LogMethod;
+} & {
+  [isKey in `is${Capitalize<LogLevel>}Enabled`]: boolean;
+};
