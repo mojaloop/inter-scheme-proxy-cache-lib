@@ -51,13 +51,11 @@ defaults_npm_auth: &defaults_npm_auth
 
 defaults_npm_publish_release: &defaults_npm_publish_release
   name: Publish NPM $RELEASE_TAG artifact
-  command: |
+  command: |   
     source $BASH_ENV
     npm ci
     echo "Publishing tag $RELEASE_TAG"
     npm publish --tag $RELEASE_TAG --access public
-    echo $(node -p "require('./package.json').name")
-    npm dist-tag add @mojaloop/inter-scheme-proxy-cache-lib@$RELEASE_TAG latest
 
 defaults_export_version_from_package: &defaults_export_version_from_package
   name: Format the changelog into the github release body and get release tag
