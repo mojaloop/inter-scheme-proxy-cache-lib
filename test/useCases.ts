@@ -31,6 +31,7 @@ import * as fixtures from '#test/fixtures';
 /*
   Use cases to check any IProxyCache implementations.
   So don't add here any particular class or details of implementation, use only interface methods/props.
+  Is supposed to be used in unit/integration tests.
  */
 
 export const proxyMappingUseCase = async (proxyCache: IProxyCache) => {

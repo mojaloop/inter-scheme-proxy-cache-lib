@@ -30,7 +30,7 @@ import { STORAGE_TYPES } from '#src/constants';
 import { ProxyCacheError } from '#src/lib/errors';
 
 describe('createProxyCache Tests -->', () => {
-  test('should throw error if proxyConfig has no type field', () => {
+  test('should throw error if wrong storageType is passed', () => {
     expect(() => {
       createProxyCache('xxx' as StorageType, {} as ProxyCacheConfig);
     }).toThrow(ProxyCacheError.unsupportedProxyCacheType());

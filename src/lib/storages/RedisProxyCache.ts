@@ -1,5 +1,5 @@
 import Redis from 'ioredis';
-// todo: think, how to avoid direct deps on Redis class (move to a separate fn?)
+// think, how to avoid direct deps on Redis class (move to a separate fn?)
 
 import { REDIS_KEYS_PREFIXES, REDIS_SUCCESS, REDIS_IS_CONNECTED_STATUSES } from './constants';
 import { IProxyCache, RedisProxyCacheConfig, IsLastFailure, AlsRequestDetails } from '../../types';
@@ -146,7 +146,7 @@ export class RedisProxyCache extends BasicProxyCache<RedisProxyCacheConfig> impl
         if (result[0]) {
           const errMessage = `error in command ${index + 1}: ${result[0].message}`;
           this.log.warn(errMessage, result[0]);
-          // todo: (!) think, how to undo successful commands
+          // todo: think, if we need to "undo" successful commands, if they finished before the error
           throw new Error(errMessage);
         }
         return result[1];

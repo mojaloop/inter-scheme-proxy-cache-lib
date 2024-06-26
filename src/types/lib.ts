@@ -37,10 +37,9 @@ export type AlsRequestDetails = {
 export type IsLastFailure = boolean;
 
 export type ProxyCacheFactory = (type: StorageType, proxyConfig: ProxyCacheConfig) => IProxyCache;
-// todo: thin about making proxyConfig optional, and assemble it using env vars if it wasn't passed
+// todo: think about making proxyConfig optional, and assemble it using env vars if it wasn't passed
 
 export type ProxyCacheConfig = RedisProxyCacheConfig | MySqlProxyCacheConfig;
-// think, if it's better to rename to ProxyCacheOptions
 
 export type RedisProxyCacheConfig = BasicProxyCacheConfig & {
   username?: string;
@@ -69,8 +68,3 @@ export type BasicProxyCacheConfig = {
 export type LibConfig = {
   logLevel: LogLevel;
 };
-
-// export interface ILogger extends LogMethods {
-//   child(context?: LogContext): ILogger;
-// }
-// maybe, it's better to define it in utils types?
