@@ -23,6 +23,16 @@
  --------------
  **********/
 
-export * from './types';
-export * from './constants';
-export { createProxyCache } from './lib';
+import { ILogger, BasicProxyCacheConfig } from '../../types';
+import { loggerFactory } from '../../utils';
+import config from '../../config';
+
+export abstract class BasicProxyCache<CacheConfig extends BasicProxyCacheConfig> {
+  protected readonly log: ILogger;
+  protected readonly defaultTtlSec = config.get('defaultTtlSec');
+
+  constructor(private readonly proxyConfig: CacheConfig) {
+    this.log = loggerFactory(this.constructor.name);
+  }
+  // define any common methods here
+}
