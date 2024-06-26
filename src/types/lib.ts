@@ -9,14 +9,14 @@ export interface IProxyCache {
   removeDfspIdFromProxyMapping: (dfspId: string) => Promise<boolean>;
 
   /**
-   *  _setSendToProxiesList_ is called in case if no party's DFSP from Oracle GET /participant/{ID} request,
+   *  _setSendToProxiesList_ should be called if there's no party's DFSP from Oracle GET /participant/{ID} request,
    *  before sending discovery calls to all available proxies.
    */
   setSendToProxiesList: (alsRequest: AlsRequestDetails, proxyIds: string[], ttlSec: number) => Promise<boolean>;
   receivedSuccessResponse: (alsRequest: AlsRequestDetails) => Promise<boolean>;
 
   /**
-   *  _receivedErrorResponse_ returns _true_ if the last failed response is detected. In that case Parties error callback should be sent.
+   *  _receivedErrorResponse_ returns `true` if the last failed response is detected. In that case Parties error callback should be sent.
    */
   receivedErrorResponse: (alsRequest: AlsRequestDetails, proxyId: string) => Promise<IsLastFailure>;
 
@@ -61,10 +61,12 @@ export type MySqlProxyCacheConfig = BasicProxyCacheConfig & {
 export type BasicProxyCacheConfig = {
   host: string;
   port: number;
-  defaultTtlSec?: number;
+  // defaultTtlSec?: number;
   // logger?: ILogger; // think, if we need to add possibility to provide custom logger impl.
 };
 
 export type LibConfig = {
   logLevel: LogLevel;
+  /** @defaultValue `30sec` */
+  defaultTtlSec: number;
 };

@@ -27,7 +27,9 @@ import { createProxyCache } from '#src/lib';
 import { RedisProxyCache } from '#src/lib/storages';
 import { ProxyCacheConfig, StorageType } from '#src/types';
 import { STORAGE_TYPES } from '#src/constants';
-import { ProxyCacheError } from '#src/lib/errors';
+import { ProxyCacheError, ValidationError } from '#src/lib/errors';
+
+import * as fixtures from '#test/fixtures';
 
 describe('createProxyCache Tests -->', () => {
   test('should throw error if wrong storageType is passed', () => {
@@ -37,14 +39,12 @@ describe('createProxyCache Tests -->', () => {
   });
 
   test('should throw error if no proxyConfig provided', () => {
-    expect(() => {
-      // @ts-expect-error TS2554: Expected 2 arguments, but got 1
-      createProxyCache(STORAGE_TYPES.redis);
-    }).toThrow(ProxyCacheError.invalidProxyCacheConfig());
+    // @ts-expect-error TS2554: Expected 2 arguments, but got 1
+    expect(() => createProxyCache(STORAGE_TYPES.redis)).toThrow(ValidationError);
   });
 
   test('should create RedisProxyCache instance', () => {
-    const proxyCache = createProxyCache(STORAGE_TYPES.redis, {} as ProxyCacheConfig);
+    const proxyCache = createProxyCache(STORAGE_TYPES.redis, fixtures.redisProxyConfigDto());
     expect(proxyCache).toBeInstanceOf(RedisProxyCache);
   });
 });

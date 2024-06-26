@@ -23,9 +23,7 @@
  --------------
  **********/
 
-import { randomUUID } from 'node:crypto';
 import { IProxyCache } from '#src/types';
-
 import * as fixtures from '#test/fixtures';
 
 /*
@@ -37,11 +35,11 @@ import * as fixtures from '#test/fixtures';
 export const proxyMappingUseCase = async (proxyCache: IProxyCache) => {
   expect(proxyCache.isConnected).toBe(true);
 
-  const dfspId = `dfsp-${randomUUID()}`;
+  const dfspId = `dfsp-${randomIntSting()}`;
   let noProxyId = await proxyCache.lookupProxyByDfspId(dfspId);
   expect(noProxyId).toBeNull();
 
-  const proxyId = `proxy-${randomUUID()}`;
+  const proxyId = `proxy-${randomIntSting()}`;
   const isAdded = await proxyCache.addDfspIdToProxyMapping(dfspId, proxyId);
   expect(isAdded).toBe(true);
 
@@ -77,3 +75,7 @@ export const detectFinalErrorCallbackUseCase = async (proxyCache: IProxyCache) =
 
   return true;
 };
+
+function randomIntSting(): string {
+  return String(Date.now()).substring(9);
+}

@@ -31,6 +31,7 @@ const proxyCache = createProxyCache(STORAGE_TYPES.redis, {
 await proxyCache.addDfspIdToProxyMapping('dfsp_1', 'proxyAB');
 ```
 
+---
 ### API docs
 Check [_IProxyCache_](https://mojaloop.github.io/inter-scheme-proxy-cache-lib/interfaces/IProxyCache.html) interface docs to get more details.
 
@@ -41,10 +42,11 @@ could be found [**here**](https://mojaloop.github.io/inter-scheme-proxy-cache-li
 ### Environment Variables
 | Env Variable Name           | Default Value | Description                        | 
 |-----------------------------|---------------|------------------------------------|
-| LOG_LEVEL_PROXY_CACHE       | `warn`        | The log level for the proxyCache |
+| PROXY_CACHE_LOG_LEVEL       | `warn`        | The log level for the proxyCache |
+| PROXY_CACHE_DEFAULT_TTL_SEC | `30`          | Default cache TTL for sendToProxiesList keys |
 
 
-
+---
 ## Development
 
 ### Build

@@ -1,9 +1,10 @@
 import Redis from 'ioredis';
 // think, how to avoid direct deps on Redis class (move to a separate fn?)
 
-import { REDIS_KEYS_PREFIXES, REDIS_SUCCESS, REDIS_IS_CONNECTED_STATUSES } from './constants';
+import * as validation from '../../validation';
 import { IProxyCache, RedisProxyCacheConfig, IsLastFailure, AlsRequestDetails } from '../../types';
 import { BasicProxyCache } from './BasicProxyCache';
+import { REDIS_KEYS_PREFIXES, REDIS_SUCCESS, REDIS_IS_CONNECTED_STATUSES } from './constants';
 
 export class RedisProxyCache extends BasicProxyCache<RedisProxyCacheConfig> implements IProxyCache {
   private readonly redisClient: Redis;
@@ -46,12 +47,13 @@ export class RedisProxyCache extends BasicProxyCache<RedisProxyCacheConfig> impl
     }
 
     const uniqueProxyIds = [...new Set(proxyIds)];
+    const ttl = ttlSec ?? this.defaultTtlSec;
     const [addedCount] = await this.executePipeline([
       ['sadd', key, uniqueProxyIds],
-      ['expire', key, ttlSec],
+      ['expire', key, ttl],
     ]);
     const isOk = addedCount === uniqueProxyIds.length;
-    this.log.verbose('setSendToProxiesList is done', { isOk, key, uniqueProxyIds, ttlSec });
+    this.log.verbose('setSendToProxiesList is done', { isOk, key, uniqueProxyIds, ttl });
     return isOk;
   }
 
@@ -158,11 +160,12 @@ export class RedisProxyCache extends BasicProxyCache<RedisProxyCacheConfig> impl
   }
 
   static formatAlsCacheKey(alsReq: AlsRequestDetails): string {
-    // todo: add alsReq validation (for JS usage case)
+    validation.validateAlsRequestDetails(alsReq);
     return `${REDIS_KEYS_PREFIXES.als}:${alsReq.sourceId}:${alsReq.type}:${alsReq.partyId}`;
   }
 
   static formatDfspCacheKey(dfspId: string): string {
+    validation.validateDfspId(dfspId);
     return `${REDIS_KEYS_PREFIXES.dfsp}:${dfspId}`;
   }
 }

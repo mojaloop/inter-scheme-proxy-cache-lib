@@ -28,6 +28,7 @@ jest.mock('ioredis', () => IoRedisMock);
 // jest.mock('ioredis', () => jest.requireActual('ioredis-mock'));
 import { createProxyCache, IProxyCache, STORAGE_TYPES } from '#src/index';
 import { RedisProxyCache } from '#src/lib/storages';
+import { ValidationError } from '#src/lib/errors';
 
 import * as useCases from '#test/useCases';
 import * as fixtures from '#test/fixtures';
@@ -111,6 +112,12 @@ describe('RedisProxyCache Tests -->', () => {
       rawExistsResult = await redisClient.exists(key);
       expect(rawExistsResult).toBe(0);
     });
+
+    test('should throw validation error if alsRequest is invalid', async () => {
+      expect(() => {
+        RedisProxyCache.formatAlsCacheKey({} as any);
+      }).toThrow(ValidationError);
+    });
   });
 
   describe('receivedSuccessResponse Method Tests -->', () => {
@@ -140,6 +147,14 @@ describe('RedisProxyCache Tests -->', () => {
 
       isDeleted = await proxyCache.receivedSuccessResponse(alsReq);
       expect(isDeleted).toBe(false);
+    });
+  });
+
+  describe('addDfspIdToProxyMapping Method Tests -->', () => {
+    test('should throw validation error if dfspId is invalid', async () => {
+      // prettier-ignore
+      await expect(() => proxyCache.addDfspIdToProxyMapping('', 'proxy1'))
+        .rejects.toThrow(ValidationError);
     });
   });
 

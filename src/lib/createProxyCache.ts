@@ -24,20 +24,20 @@
  **********/
 
 import { ProxyCacheFactory, StorageType, ProxyCacheConfig } from '../types';
+import { validateRedisProxyCacheConfig } from '../validation';
 import { loggerFactory } from '../utils';
 import { STORAGE_TYPES } from '../constants';
 import { ProxyCacheError } from './errors';
 import * as storages from './storages';
 
 export const createProxyCache: ProxyCacheFactory = (type: StorageType, proxyConfig: ProxyCacheConfig) => {
-  if (!proxyConfig || typeof proxyConfig !== 'object') {
-    throw ProxyCacheError.invalidProxyCacheConfig();
-  }
   const logger = loggerFactory('createProxyCache');
 
   switch (type) {
-    case STORAGE_TYPES.redis:
+    case STORAGE_TYPES.redis: {
+      validateRedisProxyCacheConfig(proxyConfig);
       return new storages.RedisProxyCache(proxyConfig);
+    }
     case STORAGE_TYPES.mysql:
       throw new Error('Mysql storage is not implemented yet');
     default: {
