@@ -23,27 +23,14 @@
  --------------
  **********/
 
-import { ProxyCacheFactory, StorageType, ProxyCacheConfig } from '../types';
-import { loggerFactory } from '../utils';
-import { STORAGE_TYPES } from '../constants';
-import { ProxyCacheError } from './errors';
-import * as storages from './storages';
+import { ILogger, BasicProxyCacheConfig } from '../../types';
+import { loggerFactory } from '../../utils';
 
-export const createProxyCache: ProxyCacheFactory = (type: StorageType, proxyConfig: ProxyCacheConfig) => {
-  if (!proxyConfig || typeof proxyConfig !== 'object') {
-    throw ProxyCacheError.invalidProxyCacheConfig();
-  }
-  const logger = loggerFactory('createProxyCache');
+export abstract class BasicProxyCache<CacheConfig extends BasicProxyCacheConfig> {
+  protected readonly log: ILogger;
 
-  switch (type) {
-    case STORAGE_TYPES.redis:
-      return new storages.RedisProxyCache(proxyConfig);
-    case STORAGE_TYPES.mysql:
-      throw new Error('Mysql storage is not implemented yet');
-    default: {
-      const error = ProxyCacheError.unsupportedProxyCacheType();
-      logger.warn(error.message, proxyConfig);
-      throw error;
-    }
+  constructor(private readonly proxyConfig: CacheConfig) {
+    this.log = loggerFactory(this.constructor.name);
   }
-};
+  // define any common methods here
+}

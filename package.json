@@ -1,6 +1,6 @@
 {
   "name": "@mojaloop/inter-scheme-proxy-cache-lib",
-  "version": "0.2.0-snapshot.1",
+  "version": "0.3.3",
   "description": "Common component, that provides scheme proxy caching mapping (ISPC)",
   "author": "Eugen Klymniuk (geka-evk)",
   "contributors": [
@@ -14,9 +14,6 @@
     "dist"
   ],
   "scripts": {
-    "start": "node dist/index.js",
-    "start:build": "npm run build && npm start",
-    "start:dev": "ts-node -r dotenv/config -P ./tsconfig.json src/index.ts",
     "test": "npm run test:unit",
     "test:unit": "jest --testMatch='**/unit/**/*.test.ts'",
     "test:xunit": "JEST_JUNIT_OUTPUT_DIR=./test/reports/ JEST_JUNIT_OUTPUT_NAME=xunit.xml npm run test:unit -- --reporters=jest-junit",
@@ -48,7 +45,7 @@
     "@commitlint/config-conventional": "^19.2.2",
     "@types/convict": "^6.1.6",
     "@types/jest": "^29.5.12",
-    "@types/node": "^20.14.8",
+    "@types/node": "^20.14.9",
     "@typescript-eslint/eslint-plugin": "7.14.1",
     "@typescript-eslint/parser": "7.14.1",
     "dotenv": "^16.4.5",
@@ -70,6 +67,7 @@
     "tsup": "^8.1.0",
     "typedoc": "^0.26.2",
     "typedoc-plugin-markdown": "^4.1.0",
+    "typedoc-theme-hierarchy": "^5.0.3",
     "typescript": "5.5.2"
   },
   "engines": {
@@ -97,6 +95,7 @@
   "keywords": [
     "mojaloop",
     "proxy",
+    "proxyCache",
     "proxy-cache",
     "inter-scheme-proxy-cache-lib"
   ]

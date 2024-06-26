@@ -24,33 +24,24 @@ import { createProxyCache, STORAGE_TYPES } from '@mojaloop/inter-scheme-proxy-ca
 const { createProxyCache } = require('@mojaloop/inter-scheme-proxy-cache-lib');
 
 const proxyCache = createProxyCache(STORAGE_TYPES.redis, { 
-  host: localhost,
+  host: 'localhost',
   port: 6379,
   ...
 });
-// todo: define usefull example
 await proxyCache.addDfspIdToProxyMapping('dfsp_1', 'proxyAB');
 ```
 
-### TypeDoc
-Comprehensive and interactive documentation, based on TypeScript source code of the package,
+### API docs
+Check [_IProxyCache_](https://mojaloop.github.io/inter-scheme-proxy-cache-lib/interfaces/IProxyCache.html) interface docs to get more details.
+
+Comprehensive and interactive API documentation, based on TypeScript source code of the package,
 could be found [**here**](https://mojaloop.github.io/inter-scheme-proxy-cache-lib)
 
 
-### API
-```typescript
- addDfspIdToProxyMapping: (dfspId: string, proxyId: string) => Promise<boolean>;
- // Add the proxyAdapter details of a particular DFSP to proxy mapping
-
- ...
- // todo: add all methods
-```
-
 ### Environment Variables
-| Env Variable Name           | Default Value | Description | 
-|-----------------------------|---------------|-------------|
-| LOG_LEVEL_PROXY_CACHE       | `warn`        | The log level for the proxy cache | <!-- white -->
-| todo: add required env vars |  |  | 
+| Env Variable Name           | Default Value | Description                        | 
+|-----------------------------|---------------|------------------------------------|
+| LOG_LEVEL_PROXY_CACHE       | `warn`        | The log level for the proxyCache |
 
 
 
@@ -68,6 +59,12 @@ npm run build
 
 ```bash
 npm test
+```
+
+### Generate Typedoc documentation
+
+```bash
+npm run docs
 ```
 
 ## Collaborators
