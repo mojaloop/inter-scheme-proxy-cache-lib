@@ -55,7 +55,7 @@ defaults_npm_publish_release: &defaults_npm_publish_release
     source $BASH_ENV
     npm ci
     echo "Publishing tag $RELEASE_TAG"
-    npm publish --tag latest --access public
+    npm publish --tag $RELEASE_TAG --access public
 
 defaults_export_version_from_package: &defaults_export_version_from_package
   name: Format the changelog into the github release body and get release tag
