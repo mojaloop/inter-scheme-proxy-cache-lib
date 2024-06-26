@@ -2,14 +2,14 @@ import Redis from 'ioredis';
 // todo: think, how to avoid direct deps on Redis class (move to a separate fn?)
 
 import { REDIS_KEYS_PREFIXES, REDIS_SUCCESS, REDIS_IS_CONNECTED_STATUSES } from './constants';
-import { IProxyCache, RedisProxyCacheConfig, IsLastFailure, AlsRequestDetails, ILogger } from '../../types';
+import { IProxyCache, RedisProxyCacheConfig, IsLastFailure, AlsRequestDetails } from '../../types';
+import { BasicProxyCache } from './BasicProxyCache';
 
-export class RedisProxyCache implements IProxyCache {
+export class RedisProxyCache extends BasicProxyCache<RedisProxyCacheConfig> implements IProxyCache {
   private readonly redisClient: Redis;
-  private readonly log: ILogger;
 
-  constructor(private readonly proxyConfig: RedisProxyCacheConfig) {
-    this.log = proxyConfig.logger!.child(this.constructor.name);
+  constructor(proxyConfig: RedisProxyCacheConfig) {
+    super(proxyConfig);
     this.redisClient = this.createRedisClient(proxyConfig);
   }
 

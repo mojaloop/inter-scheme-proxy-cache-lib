@@ -14,9 +14,6 @@
     "dist"
   ],
   "scripts": {
-    "start": "node dist/index.js",
-    "start:build": "npm run build && npm start",
-    "start:dev": "ts-node -r dotenv/config -P ./tsconfig.json src/index.ts",
     "test": "npm run test:unit",
     "test:unit": "jest --testMatch='**/unit/**/*.test.ts'",
     "test:xunit": "JEST_JUNIT_OUTPUT_DIR=./test/reports/ JEST_JUNIT_OUTPUT_NAME=xunit.xml npm run test:unit -- --reporters=jest-junit",
@@ -70,6 +67,7 @@
     "tsup": "^8.1.0",
     "typedoc": "^0.26.2",
     "typedoc-plugin-markdown": "^4.1.0",
+    "typedoc-theme-hierarchy": "^5.0.3",
     "typescript": "5.5.2"
   },
   "engines": {
@@ -97,6 +95,7 @@
   "keywords": [
     "mojaloop",
     "proxy",
+    "proxyCache",
     "proxy-cache",
     "inter-scheme-proxy-cache-lib"
   ]
