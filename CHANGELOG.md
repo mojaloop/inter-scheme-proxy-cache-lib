@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.1.0](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/compare/v1.0.0...v1.1.0) (2024-07-02)
+
+
+### Features
+
+* **csi-15:** added test with parallel requests; updated README ([d54357b](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/d54357bd2c889346bb553f1317f5da15d09dfceb))
+* **csi-15:** updated deps ([3f99d1f](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/3f99d1fc7edad5189dff7aaaba04de04f24a73ef))
+
 ## [1.0.0](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/compare/v0.3.3...v1.0.0) (2024-06-26)
 
 
