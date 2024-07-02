@@ -28,6 +28,7 @@ const proxyCache = createProxyCache(STORAGE_TYPES.redis, {
   port: 6379,
   ...
 });
+await proxyCache.connect();
 await proxyCache.addDfspIdToProxyMapping('dfsp_1', 'proxyAB');
 ```
 

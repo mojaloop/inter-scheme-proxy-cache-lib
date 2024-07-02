@@ -76,6 +76,17 @@ describe('RedisProxyCache Integration Tests -->', () => {
     });
   });
 
+  test('should save only the first alsRequest', async () => {
+    const alsReq = fixtures.alsRequestDetailsDto();
+    const proxyIds = ['proxy1', 'proxy2', 'proxy3'];
+
+    const [isOk1, isOk2] = await Promise.all([
+      proxyCache.setSendToProxiesList(alsReq, proxyIds, 1),
+      proxyCache.setSendToProxiesList(alsReq, proxyIds, 1),
+    ]);
+    expect(isOk1).not.toBe(isOk2);
+  });
+
   test('should have healthCheck method', async () => {
     const isOk = await proxyCache.healthCheck();
     expect(isOk).toBe(true);
