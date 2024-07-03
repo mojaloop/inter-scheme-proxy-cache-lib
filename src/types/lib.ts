@@ -44,7 +44,8 @@ export type ProxyCacheConfig = RedisProxyCacheConfig | MySqlProxyCacheConfig;
 export type RedisProxyCacheConfig = BasicProxyCacheConfig & {
   username?: string;
   password?: string;
-  lazyConnect?: boolean; // Defaults to false
+  /** @defaultValue `true` */
+  lazyConnect?: boolean;
   db?: number; // Defaults to 0
   // tls?: ConnectionOptions
   // todo: define all needed options
