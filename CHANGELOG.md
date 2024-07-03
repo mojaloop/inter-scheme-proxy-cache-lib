@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.2.0](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/compare/v1.1.0...v1.2.0) (2024-07-03)
+
+
+### Features
+
+* **csi-15:** used Logger.child; set lazyConnect=true by default ([cc75705](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/cc757054acd97a0e3205168d6f380b2473733d10))
+
 ## [1.1.0](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/compare/v1.0.0...v1.1.0) (2024-07-02)
 
 
