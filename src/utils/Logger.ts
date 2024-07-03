@@ -20,7 +20,7 @@ const makeLogString = (message: string, metaData?: unknown) => {
 export const loggerFactory = (context?: LogContext): ILogger => new Logger(context);
 
 export class Logger implements ILogger {
-  private readonly mlLogger = mlLogger;
+  private readonly mlLogger = mlLogger.child({});
   private readonly context: LogContext;
 
   constructor(context: LogContext = null) {

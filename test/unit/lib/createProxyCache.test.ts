@@ -25,7 +25,7 @@
 
 import { createProxyCache } from '#src/lib';
 import { RedisProxyCache } from '#src/lib/storages';
-import { ProxyCacheConfig, StorageType } from '#src/types';
+import { ProxyCacheConfig, RedisProxyCacheConfig, StorageType } from '#src/types';
 import { STORAGE_TYPES } from '#src/constants';
 import { ProxyCacheError, ValidationError } from '#src/lib/errors';
 
@@ -46,5 +46,13 @@ describe('createProxyCache Tests -->', () => {
   test('should create RedisProxyCache instance', () => {
     const proxyCache = createProxyCache(STORAGE_TYPES.redis, fixtures.redisProxyConfigDto());
     expect(proxyCache).toBeInstanceOf(RedisProxyCache);
+  });
+
+  test('should use lazyConnect=true option by default', () => {
+    const { host, port } = fixtures.redisProxyConfigDto();
+    const proxyCache = createProxyCache(STORAGE_TYPES.redis, { host, port });
+    // @ts-expect-error TS7053: Element implicitly has an any type because expression of type 'proxyConfig' can't be used to index type IProxyCache
+    const proxyConfig = proxyCache['proxyConfig'];
+    expect(proxyConfig.lazyConnect).toBe(true);
   });
 });

@@ -10,8 +10,9 @@ export class RedisProxyCache extends BasicProxyCache<RedisProxyCacheConfig> impl
   private readonly redisClient: Redis;
 
   constructor(proxyConfig: RedisProxyCacheConfig) {
-    super(proxyConfig);
-    this.redisClient = this.createRedisClient(proxyConfig);
+    const { lazyConnect = true } = proxyConfig;
+    super({ ...proxyConfig, lazyConnect });
+    this.redisClient = this.createRedisClient();
   }
 
   async addDfspIdToProxyMapping(dfspId: string, proxyId: string): Promise<boolean> {
@@ -115,8 +116,8 @@ export class RedisProxyCache extends BasicProxyCache<RedisProxyCacheConfig> impl
     return isConnected;
   }
 
-  private createRedisClient(proxyConfig: RedisProxyCacheConfig) {
-    const { log } = this;
+  private createRedisClient() {
+    const { proxyConfig, log } = this;
     const redisClient = new Redis(proxyConfig);
     // prettier-ignore
     redisClient
