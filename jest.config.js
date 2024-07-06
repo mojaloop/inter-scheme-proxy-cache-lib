@@ -14,7 +14,6 @@ module.exports = {
   collectCoverage: true,
   coveragePathIgnorePatterns: [
     '<rootDir>/src/utils/Logger.ts',
-    // '<rootDir>/src/utils/startingProcess.ts',
     // move these files to a separate project, and push to npm-registry
   ],
 };

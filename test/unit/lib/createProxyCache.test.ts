@@ -25,7 +25,7 @@
 
 import { createProxyCache } from '#src/lib';
 import { RedisProxyCache } from '#src/lib/storages';
-import { ProxyCacheConfig, RedisProxyCacheConfig, StorageType } from '#src/types';
+import { ProxyCacheConfig, StorageType } from '#src/types';
 import { STORAGE_TYPES } from '#src/constants';
 import { ProxyCacheError, ValidationError } from '#src/lib/errors';
 

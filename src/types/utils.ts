@@ -36,6 +36,11 @@ export type Json =
   | { [x: string]: Json }
   | Array<Json>;
 
+/** Makes the T hover overlay more readable in IDE */
+export type Prettify<T> = {
+  [K in keyof T]: T[K];
+} & {};
+
 /** @hidden */
 export const logLevelsMap = {
   error: 'error',

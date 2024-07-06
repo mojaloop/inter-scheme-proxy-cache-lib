@@ -1,5 +1,5 @@
 import { storageTypeValues } from '../constants';
-import { LogLevel } from './utils';
+import { LogLevel, Prettify } from './utils';
 
 export type StorageType = (typeof storageTypeValues)[number];
 
@@ -10,7 +10,7 @@ export interface IProxyCache {
 
   /**
    *  _setSendToProxiesList_ should be called if there's no party's DFSP from Oracle GET /participant/{ID} request,
-   *  before sending discovery calls to all available proxies.
+   *    before sending discovery calls to all available proxies.
    */
   setSendToProxiesList: (alsRequest: AlsRequestDetails, proxyIds: string[], ttlSec: number) => Promise<boolean>;
   receivedSuccessResponse: (alsRequest: AlsRequestDetails) => Promise<boolean>;
@@ -41,7 +41,8 @@ export type ProxyCacheFactory = (type: StorageType, proxyConfig: ProxyCacheConfi
 
 export type ProxyCacheConfig = RedisProxyCacheConfig | MySqlProxyCacheConfig;
 
-export type RedisProxyCacheConfig = BasicProxyCacheConfig & {
+// prettier-ignore
+export type RedisProxyCacheConfig = Prettify<BasicProxyCacheConfig & {
   username?: string;
   password?: string;
   /** @defaultValue `true` */
@@ -49,15 +50,16 @@ export type RedisProxyCacheConfig = BasicProxyCacheConfig & {
   db?: number; // Defaults to 0
   // tls?: ConnectionOptions
   // todo: define all needed options
-};
+}>;
 
 /** **(!)**  _MySqlProxyCacheConfig_ is not supported yet */
-export type MySqlProxyCacheConfig = BasicProxyCacheConfig & {
+// prettier-ignore
+export type MySqlProxyCacheConfig = Prettify<BasicProxyCacheConfig & {
   database: string;
   user?: string;
   password?: string;
   // todo: add mySql-specific options
-};
+}>;
 
 export type BasicProxyCacheConfig = {
   host: string;
