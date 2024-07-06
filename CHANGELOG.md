@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.3.0](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/compare/v1.2.0...v1.3.0) (2024-07-06)
+
+
+### Features
+
+* **csi-15:** added Prettify type ([12d60b3](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/12d60b37a0658a0ad606d77802c81c4de525f75a))
+* **csi-15:** updated docs ([a9e1b85](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/a9e1b8598fdbd7442d1337b8603feee367e5d2aa))
+
 ## [1.2.0](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/compare/v1.1.0...v1.2.0) (2024-07-03)
 
 
