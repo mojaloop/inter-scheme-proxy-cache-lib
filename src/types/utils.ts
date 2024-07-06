@@ -39,7 +39,7 @@ export type Json =
 /** Makes the T hover overlay more readable in IDE */
 export type Prettify<T> = {
   [K in keyof T]: T[K];
-} & {};
+} & unknown;
 
 /** @hidden */
 export const logLevelsMap = {
