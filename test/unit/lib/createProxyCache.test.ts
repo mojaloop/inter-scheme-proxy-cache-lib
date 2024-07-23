@@ -25,9 +25,9 @@
 
 import { createProxyCache } from '#src/lib';
 import { RedisProxyCache } from '#src/lib/storages';
-import { ProxyCacheConfig, StorageType } from '#src/types';
-import { STORAGE_TYPES } from '#src/constants';
 import { ProxyCacheError, ValidationError } from '#src/lib/errors';
+import { STORAGE_TYPES } from '#src/constants';
+import { ProxyCacheConfig, StorageType, BasicConnectionConfig } from '#src/types';
 
 import * as fixtures from '#test/fixtures';
 
@@ -49,10 +49,17 @@ describe('createProxyCache Tests -->', () => {
   });
 
   test('should use lazyConnect=true option by default', () => {
-    const { host, port } = fixtures.redisProxyConfigDto();
-    const proxyCache = createProxyCache(STORAGE_TYPES.redis, { host, port });
-    // @ts-expect-error TS7053: Element implicitly has an any type because expression of type 'proxyConfig' can't be used to index type IProxyCache
-    const proxyConfig = proxyCache['proxyConfig'];
-    expect(proxyConfig.lazyConnect).toBe(true);
+    const { cluster } = fixtures.redisProxyConfigDto();
+    const proxyCache = createProxyCache(STORAGE_TYPES.redis, { cluster });
+    // @ts-expect-error TS7053: Element implicitly has an any type because expression of type 'redisClient' can't be used to index type IProxyCache
+    const { options } = proxyCache['redisClient'];
+    expect(options.lazyConnect).toBe(true);
+  });
+
+  test('should fail if cluster array is empty', () => {
+    const cluster: BasicConnectionConfig[] = [];
+    // prettier-ignore
+    expect(() => createProxyCache(STORAGE_TYPES.redis, { cluster }))
+      .toThrow(ValidationError);
   });
 });

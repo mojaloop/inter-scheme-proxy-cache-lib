@@ -25,7 +25,7 @@
 
 import { IoRedisMock } from '../../mocks';
 jest.mock('ioredis', () => IoRedisMock);
-// jest.mock('ioredis', () => jest.requireActual('ioredis-mock'));
+
 import { createProxyCache, IProxyCache, STORAGE_TYPES } from '#src/index';
 import { RedisProxyCache } from '#src/lib/storages';
 import { ValidationError } from '#src/lib/errors';
@@ -36,16 +36,17 @@ import * as fixtures from '#test/fixtures';
 const redisProxyConfig = fixtures.redisProxyConfigDto();
 
 describe('RedisProxyCache Tests -->', () => {
+  const { cluster, ...redisOptions } = redisProxyConfig;
+  const redisClient = new IoRedisMock.Cluster(cluster, { redisOptions });
+
   let proxyCache: IProxyCache;
-  let redisClient: IoRedisMock; // to check internal Redis state
 
   beforeEach(async () => {
     proxyCache = createProxyCache(STORAGE_TYPES.redis, redisProxyConfig);
-    redisClient = new IoRedisMock(redisProxyConfig);
     // prettier-ignore
     await Promise.any([
       proxyCache.connect(),
-      redisClient.connect(),
+      redisClient.connect()
     ]);
     expect(proxyCache.isConnected).toBe(true);
   });

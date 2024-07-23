@@ -1,17 +1,18 @@
-import Redis from 'ioredis';
-// think, how to avoid direct deps on Redis class (move to a separate fn?)
+import { Cluster } from 'ioredis';
 
 import * as validation from '../../validation';
-import { IProxyCache, RedisProxyCacheConfig, IsLastFailure, AlsRequestDetails } from '../../types';
-import { BasicProxyCache } from './BasicProxyCache';
+import config from '../../config';
+import { loggerFactory } from '../../utils';
+import { IProxyCache, RedisProxyCacheConfig, IsLastFailure, AlsRequestDetails, ILogger } from '../../types';
 import { REDIS_KEYS_PREFIXES, REDIS_SUCCESS, REDIS_IS_CONNECTED_STATUSES } from './constants';
 
-export class RedisProxyCache extends BasicProxyCache<RedisProxyCacheConfig> implements IProxyCache {
-  private readonly redisClient: Redis;
+export class RedisProxyCache implements IProxyCache {
+  private readonly redisClient: Cluster;
+  private readonly log: ILogger;
+  private readonly defaultTtlSec = config.get('defaultTtlSec');
 
-  constructor(proxyConfig: RedisProxyCacheConfig) {
-    const { lazyConnect = true } = proxyConfig;
-    super({ ...proxyConfig, lazyConnect });
+  constructor(private readonly proxyConfig: RedisProxyCacheConfig) {
+    this.log = loggerFactory(this.constructor.name);
     this.redisClient = this.createRedisClient();
   }
 
@@ -75,7 +76,7 @@ export class RedisProxyCache extends BasicProxyCache<RedisProxyCacheConfig> impl
     ]);
     const isLast = delCount === 1 && card === 0;
 
-    this.log.warn('receivedErrorResponse is done', { isLast, alsReq, delCount, card });
+    this.log.info('receivedErrorResponse is done', { isLast, alsReq, delCount, card });
     return isLast;
   }
 
@@ -117,8 +118,11 @@ export class RedisProxyCache extends BasicProxyCache<RedisProxyCacheConfig> impl
   }
 
   private createRedisClient() {
-    const { proxyConfig, log } = this;
-    const redisClient = new Redis(proxyConfig);
+    const { log } = this;
+    const { cluster, ...redisOptions } = this.proxyConfig;
+    const { lazyConnect = true } = redisOptions;
+
+    const redisClient = new Cluster(cluster, { ...redisOptions, lazyConnect });
     // prettier-ignore
     redisClient
       .on('error', (err) => { log.error('redis connection error', err); })

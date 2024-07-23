@@ -1,12 +1,10 @@
 import { RedisProxyCacheConfig, AlsRequestDetails } from '#src/types';
 
 export const redisProxyConfigDto = ({
-  host = 'localhost',
-  port = 16379,
+  cluster = [{ host: '127.0.0.1', port: 16379 }],
   lazyConnect = true,
 } = {}): RedisProxyCacheConfig => ({
-  host,
-  port,
+  cluster,
   lazyConnect,
 });
 
