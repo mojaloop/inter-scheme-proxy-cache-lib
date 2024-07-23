@@ -1,5 +1,4 @@
 import { Cluster } from 'ioredis';
-// think, how to avoid direct deps on Redis class (move to a separate fn?)
 
 import * as validation from '../../validation';
 import config from '../../config';

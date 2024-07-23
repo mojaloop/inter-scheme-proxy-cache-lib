@@ -43,7 +43,11 @@ describe('RedisProxyCache Tests -->', () => {
 
   beforeEach(async () => {
     proxyCache = createProxyCache(STORAGE_TYPES.redis, redisProxyConfig);
-    await Promise.any([proxyCache.connect(), redisClient.connect()]);
+    // prettier-ignore
+    await Promise.any([
+      proxyCache.connect(),
+      redisClient.connect()
+    ]);
     expect(proxyCache.isConnected).toBe(true);
   });
 
