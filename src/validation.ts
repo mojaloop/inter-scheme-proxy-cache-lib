@@ -27,35 +27,43 @@
  * We need a separate validation, coz the library might be used in JS projects, where TS type checks are not available
  */
 import Ajv, { JSONSchemaType } from 'ajv';
-import { RedisProxyCacheConfig, AlsRequestDetails } from './types';
-import { ValidationError } from '#src/lib';
+import { RedisProxyCacheConfig, BasicConnectionConfig, AlsRequestDetails } from './types';
+import { ValidationError } from '../src/lib';
 
 const ajv = new Ajv();
 
-const RedisProxyCacheConfigSchema: JSONSchemaType<RedisProxyCacheConfig> = {
+const ClusterSchema: JSONSchemaType<BasicConnectionConfig> = {
   type: 'object',
   properties: {
     host: { type: 'string' },
     port: { type: 'integer' },
+  },
+  required: ['host', 'port'],
+  additionalProperties: false,
+};
+
+const RedisProxyCacheConfigSchema: JSONSchemaType<RedisProxyCacheConfig> = {
+  type: 'object',
+  properties: {
+    cluster: { type: 'array', items: ClusterSchema, minItems: 1 },
     username: { type: 'string', nullable: true },
     password: { type: 'string', nullable: true },
     lazyConnect: { type: 'boolean', nullable: true },
     db: { type: 'number', nullable: true },
-    // todo: find a better way to define optional params (without nullable: true)
+    // find a better way to define optional params (without nullable: true)
   },
-  required: ['host', 'port'],
+  required: ['cluster'],
   additionalProperties: true,
 };
 const redisProxyCacheConfigValidatingFn = ajv.compile<RedisProxyCacheConfig>(RedisProxyCacheConfigSchema);
 
-export const validateRedisProxyCacheConfig = (data: unknown): true => {
-  const isValid = redisProxyCacheConfigValidatingFn(data);
+export const validateRedisProxyCacheConfig = (cacheConfig: unknown): RedisProxyCacheConfig => {
+  const isValid = redisProxyCacheConfigValidatingFn(cacheConfig);
   if (!isValid) {
     const errDetails = `redisProxyCacheConfig: ${redisProxyCacheConfigValidatingFn.errors![0]!.message}`;
     throw ValidationError.invalidFormat(errDetails);
-    // todo: think, if we need to throw or just return false?
   }
-  return true;
+  return cacheConfig;
 };
 
 const AlsRequestSchema: JSONSchemaType<AlsRequestDetails> = {

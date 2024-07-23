@@ -34,9 +34,8 @@ const logger = loggerFactory('iTests');
 
 const port = parseInt(env.REDIS_PORT || '');
 // todo: use convict
-const redisProxyConfig = fixtures.redisProxyConfigDto({
-  port,
-});
+const cluster = [{ host: 'localhost', port }];
+const redisProxyConfig = fixtures.redisProxyConfigDto({ cluster });
 logger.info('redisProxyConfig', redisProxyConfig);
 
 describe('RedisProxyCache Integration Tests -->', () => {

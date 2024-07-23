@@ -41,31 +41,34 @@ export type ProxyCacheFactory = (type: StorageType, proxyConfig: ProxyCacheConfi
 
 export type ProxyCacheConfig = RedisProxyCacheConfig | MySqlProxyCacheConfig;
 
-// prettier-ignore
-export type RedisProxyCacheConfig = Prettify<BasicProxyCacheConfig & {
+export type RedisProxyCacheConfig = Prettify<RedisConnectionConfig & RedisOptions>;
+
+export type RedisConnectionConfig = {
+  cluster: BasicConnectionConfig[];
+  // todo: think, if it's better to add also { host, port } options for standalone redis
+};
+
+export type RedisOptions = {
   username?: string;
   password?: string;
   /** @defaultValue `true` */
   lazyConnect?: boolean;
   db?: number; // Defaults to 0
-  // tls?: ConnectionOptions
-  // todo: define all needed options
-}>;
+  // define all needed options here
+};
 
 /** **(!)**  _MySqlProxyCacheConfig_ is not supported yet */
 // prettier-ignore
-export type MySqlProxyCacheConfig = Prettify<BasicProxyCacheConfig & {
+export type MySqlProxyCacheConfig = Prettify<BasicConnectionConfig & {
   database: string;
   user?: string;
   password?: string;
   // todo: add mySql-specific options
 }>;
 
-export type BasicProxyCacheConfig = {
+export type BasicConnectionConfig = {
   host: string;
   port: number;
-  // defaultTtlSec?: number;
-  // logger?: ILogger; // think, if we need to add possibility to provide custom logger impl.
 };
 
 export type LibConfig = {
