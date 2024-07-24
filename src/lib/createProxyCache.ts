@@ -25,14 +25,12 @@
 
 import { ProxyCacheFactory, StorageType, ProxyCacheConfig } from '../types';
 import { validateRedisProxyCacheConfig } from '../validation';
-import { loggerFactory } from '../utils';
+import { logger } from '../utils';
 import { STORAGE_TYPES } from '../constants';
 import { ProxyCacheError } from './errors';
 import * as storages from './storages';
 
 export const createProxyCache: ProxyCacheFactory = (type: StorageType, proxyConfig: ProxyCacheConfig) => {
-  const logger = loggerFactory('createProxyCache');
-
   switch (type) {
     case STORAGE_TYPES.redis: {
       return new storages.RedisProxyCache(validateRedisProxyCacheConfig(proxyConfig));

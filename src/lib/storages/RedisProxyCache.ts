@@ -2,7 +2,7 @@ import { Cluster } from 'ioredis';
 
 import * as validation from '../../validation';
 import config from '../../config';
-import { loggerFactory } from '../../utils';
+import { createLogger } from '../../utils';
 import { IProxyCache, RedisProxyCacheConfig, IsLastFailure, AlsRequestDetails, ILogger } from '../../types';
 import { REDIS_KEYS_PREFIXES, REDIS_SUCCESS, REDIS_IS_CONNECTED_STATUSES } from './constants';
 
@@ -12,7 +12,7 @@ export class RedisProxyCache implements IProxyCache {
   private readonly defaultTtlSec = config.get('defaultTtlSec');
 
   constructor(private readonly proxyConfig: RedisProxyCacheConfig) {
-    this.log = loggerFactory(this.constructor.name);
+    this.log = createLogger(this.constructor.name);
     this.redisClient = this.createRedisClient();
   }
 
@@ -87,7 +87,7 @@ export class RedisProxyCache implements IProxyCache {
     }
     await this.redisClient.connect();
     const { status } = this.redisClient;
-    this.log.info('proxyCache is connected', { status });
+    this.log.verbose('proxyCache is connected', { status });
     return true;
   }
 
@@ -130,7 +130,7 @@ export class RedisProxyCache implements IProxyCache {
       .on('end', () => { log.warn('redis connection ended'); })
       .on('reconnecting', (ms: number) => { log.info('redis connection reconnecting', { ms }); })
       .on('connect', () => { log.verbose('redis connection is established'); })
-      .on('ready', () => { log.info('redis connection is ready'); });
+      .on('ready', () => { log.verbose('redis connection is ready'); });
 
     return redisClient;
   }

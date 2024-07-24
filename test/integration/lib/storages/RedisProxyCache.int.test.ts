@@ -25,12 +25,10 @@
 
 import { env } from 'node:process';
 import { createProxyCache, IProxyCache, STORAGE_TYPES } from '#src/index';
-import { loggerFactory } from '#src/utils';
+import { logger } from '#src/utils';
 
 import * as useCases from '#test/useCases';
 import * as fixtures from '#test/fixtures';
-
-const logger = loggerFactory('iTests');
 
 const port = parseInt(env.REDIS_PORT || '');
 // todo: use convict
