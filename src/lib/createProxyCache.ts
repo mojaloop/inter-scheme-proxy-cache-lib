@@ -24,7 +24,7 @@
  **********/
 
 import { ProxyCacheFactory, StorageType, ProxyCacheConfig } from '../types';
-import { validateRedisProxyCacheConfig } from '../validation';
+import { validateRedisClusterProxyCacheConfig, validateRedisProxyCacheConfig } from '../validation';
 import { logger } from '../utils';
 import { STORAGE_TYPES } from '../constants';
 import { ProxyCacheError } from './errors';
@@ -34,6 +34,9 @@ export const createProxyCache: ProxyCacheFactory = (type: StorageType, proxyConf
   switch (type) {
     case STORAGE_TYPES.redis: {
       return new storages.RedisProxyCache(validateRedisProxyCacheConfig(proxyConfig));
+    }
+    case STORAGE_TYPES.redisCluster: {
+      return new storages.RedisProxyCache(validateRedisClusterProxyCacheConfig(proxyConfig));
     }
     case STORAGE_TYPES.mysql:
       throw new Error('Mysql storage is not implemented yet');

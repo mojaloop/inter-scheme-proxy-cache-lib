@@ -22,19 +22,26 @@ services:
       - redis-node-4
       - redis-node-5
     ports:
-      - "6379:6379"
+      - "${REDIS_CLUSTER_PORT}:6379"
 
   redis-node-1:
     <<: *REDIS_NODE
-
   redis-node-2:
     <<: *REDIS_NODE
-
   redis-node-3:
     <<: *REDIS_NODE
-
   redis-node-4:
     <<: *REDIS_NODE
-
   redis-node-5:
     <<: *REDIS_NODE
+
+
+  redis:
+    image: redis:6.2.4-alpine
+    restart: "unless-stopped"
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+      - REDIS_PORT=6379
+      - REDIS_REPLICATION_MODE=master
+    ports:
+      - "${REDIS_STANDALONE_PORT}:6379"

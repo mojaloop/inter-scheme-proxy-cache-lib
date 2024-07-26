@@ -27,7 +27,7 @@ import { createProxyCache } from '#src/lib';
 import { RedisProxyCache } from '#src/lib/storages';
 import { ProxyCacheError, ValidationError } from '#src/lib/errors';
 import { STORAGE_TYPES } from '#src/constants';
-import { ProxyCacheConfig, StorageType, BasicConnectionConfig } from '#src/types';
+import { ProxyCacheConfig, StorageType, IProxyCache, BasicConnectionConfig } from '#src/types';
 
 import * as fixtures from '#test/fixtures';
 
@@ -43,23 +43,48 @@ describe('createProxyCache Tests -->', () => {
     expect(() => createProxyCache(STORAGE_TYPES.redis)).toThrow(ValidationError);
   });
 
-  test('should create RedisProxyCache instance', () => {
-    const proxyCache = createProxyCache(STORAGE_TYPES.redis, fixtures.redisProxyConfigDto());
-    expect(proxyCache).toBeInstanceOf(RedisProxyCache);
-  });
-
-  test('should use lazyConnect=true option by default', () => {
-    const { cluster } = fixtures.redisProxyConfigDto();
-    const proxyCache = createProxyCache(STORAGE_TYPES.redis, { cluster });
+  const checkDefaultLazyConnectOptionUseCase = (proxyCache: IProxyCache) => {
     // @ts-expect-error TS7053: Element implicitly has an any type because expression of type 'redisClient' can't be used to index type IProxyCache
     const { options } = proxyCache['redisClient'];
     expect(options.lazyConnect).toBe(true);
+  };
+
+  describe('Redis Standalone Tests -->', () => {
+    test('should create RedisProxyCache instance', () => {
+      const proxyCache = createProxyCache(STORAGE_TYPES.redis, fixtures.redisProxyConfigDto());
+      expect(proxyCache).toBeInstanceOf(RedisProxyCache);
+    });
+
+    test('should use lazyConnect=true option by default', () => {
+      const { host, port } = fixtures.redisProxyConfigDto();
+      const proxyCache = createProxyCache(STORAGE_TYPES.redis, { host, port });
+      checkDefaultLazyConnectOptionUseCase(proxyCache);
+    });
+
+    test('should fail if host is string', () => {
+      // prettier-ignore
+      expect(() => createProxyCache(STORAGE_TYPES.redis, { host: '', port: 123 }))
+        .toThrow(ValidationError);
+    });
   });
 
-  test('should fail if cluster array is empty', () => {
-    const cluster: BasicConnectionConfig[] = [];
-    // prettier-ignore
-    expect(() => createProxyCache(STORAGE_TYPES.redis, { cluster }))
-      .toThrow(ValidationError);
+  describe('Redis Cluster Tests -->', () => {
+    test('should create RedisProxyCache instance with cluster support', () => {
+      const proxyCache = createProxyCache(STORAGE_TYPES.redisCluster, fixtures.redisClusterProxyConfigDto());
+      expect(proxyCache).toBeInstanceOf(RedisProxyCache);
+    });
+
+    test('should use lazyConnect=true option by default for cluster', () => {
+      const { cluster } = fixtures.redisClusterProxyConfigDto();
+      const proxyCache = createProxyCache(STORAGE_TYPES.redisCluster, { cluster });
+      checkDefaultLazyConnectOptionUseCase(proxyCache);
+    });
+
+    test('should fail if cluster array is empty', () => {
+      const cluster: BasicConnectionConfig[] = [];
+      // prettier-ignore
+      expect(() => createProxyCache(STORAGE_TYPES.redis, { cluster }))
+        .toThrow(ValidationError);
+    });
   });
 });

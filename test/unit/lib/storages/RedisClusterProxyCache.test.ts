@@ -33,23 +33,23 @@ import { ValidationError } from '#src/lib/errors';
 import * as useCases from '#test/useCases';
 import * as fixtures from '#test/fixtures';
 
-const redisProxyConfig = fixtures.redisProxyConfigDto();
+const redisClusterProxyConfig = fixtures.redisClusterProxyConfigDto();
 
-describe('RedisProxyCache Tests -->', () => {
-  const redisClient = new IoRedisMock(redisProxyConfig);
+describe('RedisClusterProxyCache Tests -->', () => {
+  const { cluster, ...redisOptions } = redisClusterProxyConfig;
+  const redisClient = new IoRedisMock.Cluster(cluster, { redisOptions });
 
   let proxyCache: IProxyCache;
   let anotherProxyCache: IProxyCache;
 
   beforeAll(async () => {
-    proxyCache = createProxyCache(STORAGE_TYPES.redis, redisProxyConfig);
-    anotherProxyCache = createProxyCache(STORAGE_TYPES.redis, redisProxyConfig);
-
+    proxyCache = createProxyCache(STORAGE_TYPES.redisCluster, redisClusterProxyConfig);
+    anotherProxyCache = createProxyCache(STORAGE_TYPES.redisCluster, redisClusterProxyConfig);
     // prettier-ignore
     await Promise.any([
       proxyCache.connect(),
       anotherProxyCache.connect(),
-      redisClient.connect(),
+      redisClient.connect()
     ]);
     expect(proxyCache.isConnected).toBe(true);
   });
