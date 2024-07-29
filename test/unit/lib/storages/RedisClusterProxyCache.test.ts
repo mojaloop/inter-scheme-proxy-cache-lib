@@ -26,6 +26,7 @@
 import { IoRedisMock } from '../../mocks';
 jest.mock('ioredis', () => IoRedisMock);
 
+import { setTimeout as sleep } from 'node:timers/promises';
 import { createProxyCache, IProxyCache, STORAGE_TYPES } from '#src/index';
 import { RedisProxyCache } from '#src/lib/storages';
 import { ValidationError } from '#src/lib/errors';
@@ -108,7 +109,7 @@ describe('RedisClusterProxyCache Tests -->', () => {
       let rawExistsResult = await redisClient.exists(key);
       expect(rawExistsResult).toBe(1);
 
-      await new Promise((resolve) => setTimeout(resolve, ttlSec * 1000));
+      await sleep(ttlSec * 1000);
 
       rawExistsResult = await redisClient.exists(key);
       expect(rawExistsResult).toBe(0);

@@ -21,7 +21,7 @@ export const redisClusterProxyConfigDto = ({
 
 export const alsRequestDetailsDto = ({
   sourceId = `test-source-${Date.now()}`,
-  type = 'MSISDN', // todo: use enum for type
+  type = 'MSISDN', // use enum for type
   partyId = `party-${randomUUID()}`,
 } = {}): AlsRequestDetails => ({
   sourceId,

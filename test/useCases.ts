@@ -105,6 +105,7 @@ export const shareDbInfoForAllConnectedInstances = async (proxyCache: IProxyCach
 
   const isLast = await anotherProxyCache.receivedErrorResponse(alsReq, proxyId);
   expect(isLast).toBe(true);
+  return true;
 };
 
 function randomIntSting(): string {

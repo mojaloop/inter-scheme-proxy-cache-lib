@@ -27,22 +27,45 @@
  * We need a separate validation, coz the library might be used in JS projects, where TS type checks are not available
  */
 import Ajv, { JSONSchemaType } from 'ajv';
-import { RedisProxyCacheConfig, BasicConnectionConfig, AlsRequestDetails, RedisClusterProxyCacheConfig } from './types';
+import { PropertiesSchema } from 'ajv/dist/types/json-schema';
+import {
+  RedisProxyCacheConfig,
+  RedisOptions,
+  RedisClusterProxyCacheConfig,
+  RedisClusterOptions,
+  BasicConnectionConfig,
+  AlsRequestDetails,
+} from './types';
 import { ValidationError } from '../src/lib';
 
 const ajv = new Ajv();
 
-const RedisProxyCacheConfigSchema: JSONSchemaType<RedisProxyCacheConfig> = {
+const BasicConnectionSchema: JSONSchemaType<BasicConnectionConfig> = {
   type: 'object',
   properties: {
     host: { type: 'string', minLength: 1 },
     port: { type: 'integer' },
-    // todo: think, how to avoid duplication of the same fields for both redis schemas
+  },
+  required: ['host', 'port'],
+  additionalProperties: false,
+};
+
+const RedisOptionsSchema: JSONSchemaType<RedisOptions> = {
+  type: 'object',
+  properties: {
     username: { type: 'string', nullable: true },
     password: { type: 'string', nullable: true },
     lazyConnect: { type: 'boolean', nullable: true },
     db: { type: 'number', nullable: true },
-    // find a better way to define optional params (without nullable: true)
+  },
+  additionalProperties: true,
+};
+
+const RedisProxyCacheConfigSchema: JSONSchemaType<RedisProxyCacheConfig> = {
+  type: 'object',
+  properties: {
+    ...(BasicConnectionSchema.properties as PropertiesSchema<BasicConnectionConfig>),
+    ...(RedisOptionsSchema.properties as PropertiesSchema<RedisOptions>),
   },
   required: ['host', 'port'],
   additionalProperties: true,
@@ -58,30 +81,15 @@ export const validateRedisProxyCacheConfig = (cacheConfig: unknown): RedisProxyC
   return cacheConfig;
 };
 
-const ClusterSchema: JSONSchemaType<BasicConnectionConfig> = {
-  type: 'object',
-  properties: {
-    host: { type: 'string', minLength: 1 },
-    port: { type: 'integer' },
-  },
-  required: ['host', 'port'],
-  additionalProperties: false,
-};
-
 const RedisClusterProxyCacheConfigSchema: JSONSchemaType<RedisClusterProxyCacheConfig> = {
   type: 'object',
   properties: {
-    cluster: { type: 'array', items: ClusterSchema, minItems: 1 },
-    username: { type: 'string', nullable: true },
-    password: { type: 'string', nullable: true },
-    lazyConnect: { type: 'boolean', nullable: true },
-    db: { type: 'number', nullable: true },
-    // find a better way to define optional params (without nullable: true)
+    cluster: { type: 'array', items: BasicConnectionSchema, minItems: 1 },
+    ...(RedisOptionsSchema.properties as PropertiesSchema<RedisClusterOptions>),
   },
   required: ['cluster'],
   additionalProperties: true,
 };
-
 const redisClusterProxyCacheConfigValidatingFn = ajv.compile<RedisClusterProxyCacheConfig>(
   RedisClusterProxyCacheConfigSchema,
 );
