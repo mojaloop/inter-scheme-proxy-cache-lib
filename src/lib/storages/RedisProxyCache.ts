@@ -50,9 +50,11 @@ export class RedisProxyCache implements IProxyCache {
 
     const uniqueProxyIds = [...new Set(proxyIds)];
     const ttl = ttlSec ?? this.defaultTtlSec;
+    const expiryTime = Date.now() + ttl * 1000;
+    const expiryKey = `${key}:expiresAt`;
     const [addedCount] = await this.executePipeline([
       ['sadd', key, uniqueProxyIds],
-      ['expire', key, ttl],
+      ['add', expiryKey, expiryTime],
     ]);
     const isOk = addedCount === uniqueProxyIds.length;
     this.log.verbose('setSendToProxiesList is done', { isOk, key, uniqueProxyIds, ttl });
