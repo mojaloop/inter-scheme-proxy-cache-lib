@@ -3,7 +3,7 @@ import { storageTypeValues } from '../constants';
 import { LogLevel, Prettify } from './utils';
 
 export type StorageType = (typeof storageTypeValues)[number];
-export type ProxyClientType = Cluster | Redis | unknown; // define other real types here
+export type ProxyClientType = RedisClient | MysqlClient;
 
 export interface IProxyCache<ProxyClientType> {
   addDfspIdToProxyMapping: (dfspId: string, proxyId: string) => Promise<boolean>;
@@ -60,6 +60,8 @@ export type RedisOptions = {
   // define all needed options here
 };
 
+export type RedisClient = Redis | Cluster; 
+
 /** **(!)**  _MySqlProxyCacheConfig_ is not supported yet */
 // prettier-ignore
 export type MySqlProxyCacheConfig = Prettify<BasicConnectionConfig & {
@@ -68,6 +70,8 @@ export type MySqlProxyCacheConfig = Prettify<BasicConnectionConfig & {
   password?: string;
   // todo: add mySql-specific options
 }>;
+
+export type MysqlClient = unknown; // update when mysql is supported
 
 export type BasicConnectionConfig = {
   host: string;
