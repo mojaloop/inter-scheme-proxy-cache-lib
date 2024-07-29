@@ -39,13 +39,14 @@ export type IsLastFailure = boolean;
 export type ProxyCacheFactory = (type: StorageType, proxyConfig: ProxyCacheConfig) => IProxyCache;
 // todo: think about making proxyConfig optional, and assemble it using env vars if it wasn't passed
 
-export type ProxyCacheConfig = RedisProxyCacheConfig | MySqlProxyCacheConfig;
+export type ProxyCacheConfig = RedisProxyCacheConfig | RedisClusterProxyCacheConfig | MySqlProxyCacheConfig;
 
-export type RedisProxyCacheConfig = Prettify<RedisConnectionConfig & RedisOptions>;
+export type RedisProxyCacheConfig = Prettify<BasicConnectionConfig & RedisOptions>;
 
-export type RedisConnectionConfig = {
+export type RedisClusterProxyCacheConfig = Prettify<RedisClusterConnectionConfig & RedisClusterOptions>;
+
+export type RedisClusterConnectionConfig = {
   cluster: BasicConnectionConfig[];
-  // todo: think, if it's better to add also { host, port } options for standalone redis
 };
 
 export type RedisOptions = {
@@ -56,6 +57,8 @@ export type RedisOptions = {
   db?: number; // Defaults to 0
   // define all needed options here
 };
+
+export type RedisClusterOptions = RedisOptions;
 
 /** **(!)**  _MySqlProxyCacheConfig_ is not supported yet */
 // prettier-ignore

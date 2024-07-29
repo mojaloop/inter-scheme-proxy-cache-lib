@@ -1,17 +1,29 @@
-import { Cluster } from 'ioredis';
+import Redis, { Cluster } from 'ioredis';
 
 import * as validation from '../../validation';
 import config from '../../config';
 import { createLogger } from '../../utils';
-import { IProxyCache, RedisProxyCacheConfig, IsLastFailure, AlsRequestDetails, ILogger } from '../../types';
+import {
+  IProxyCache,
+  RedisProxyCacheConfig,
+  RedisClusterProxyCacheConfig,
+  IsLastFailure,
+  AlsRequestDetails,
+  ILogger,
+} from '../../types';
 import { REDIS_KEYS_PREFIXES, REDIS_SUCCESS, REDIS_IS_CONNECTED_STATUSES } from './constants';
 
+type RedisClient = Redis | Cluster;
+type RedisConfig = RedisProxyCacheConfig | RedisClusterProxyCacheConfig;
+
+const isClusterConfig = (config: RedisConfig): config is RedisClusterProxyCacheConfig => 'cluster' in config;
+
 export class RedisProxyCache implements IProxyCache {
-  private readonly redisClient: Cluster;
+  private readonly redisClient: RedisClient;
   private readonly log: ILogger;
   private readonly defaultTtlSec = config.get('defaultTtlSec');
 
-  constructor(private readonly proxyConfig: RedisProxyCacheConfig) {
+  constructor(private readonly proxyConfig: RedisConfig) {
     this.log = createLogger(this.constructor.name);
     this.redisClient = this.createRedisClient();
   }
@@ -118,11 +130,18 @@ export class RedisProxyCache implements IProxyCache {
   }
 
   private createRedisClient() {
-    const { log } = this;
-    const { cluster, ...redisOptions } = this.proxyConfig;
-    const { lazyConnect = true } = redisOptions;
+    this.proxyConfig.lazyConnect ??= true;
+    // prettier-ignore
+    const redisClient = isClusterConfig(this.proxyConfig)
+      ? new Cluster(this.proxyConfig.cluster, this.proxyConfig)
+      : new Redis(this.proxyConfig);
 
-    const redisClient = new Cluster(cluster, { ...redisOptions, lazyConnect });
+    this.addEventListeners(redisClient);
+    return redisClient;
+  }
+
+  private addEventListeners(redisClient: RedisClient) {
+    const { log } = this;
     // prettier-ignore
     redisClient
       .on('error', (err) => { log.error('redis connection error', err); })
@@ -131,8 +150,6 @@ export class RedisProxyCache implements IProxyCache {
       .on('reconnecting', (ms: number) => { log.info('redis connection reconnecting', { ms }); })
       .on('connect', () => { log.verbose('redis connection is established'); })
       .on('ready', () => { log.verbose('redis connection is ready'); });
-
-    return redisClient;
   }
 
   private async executePipeline(commands: [string, ...any[]][]): Promise<unknown[]> {

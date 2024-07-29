@@ -1,5 +1,6 @@
 export const STORAGE_TYPES = {
   redis: 'redis',
+  redisCluster: 'redis-cluster',
   mysql: 'mysql',
 } as const;
 

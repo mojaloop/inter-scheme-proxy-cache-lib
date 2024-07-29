@@ -76,6 +76,37 @@ export const detectFinalErrorCallbackUseCase = async (proxyCache: IProxyCache) =
   return true;
 };
 
+export const setSendToProxiesListOnceUseCase = async (proxyCache: IProxyCache) => {
+  const alsReq = fixtures.alsRequestDetailsDto();
+  const proxyIds = [`proxy1-${Date.now()}`, `proxy2-${Date.now()}`];
+  let isOk = await proxyCache.setSendToProxiesList(alsReq, proxyIds, 1);
+  expect(isOk).toBe(true);
+  isOk = await proxyCache.setSendToProxiesList(alsReq, proxyIds, 1);
+  expect(isOk).toBe(false);
+  return true;
+};
+
+export const notSetSendToProxiesListForTheSameAlsRequestUseCase = async (proxyCache: IProxyCache) => {
+  const alsReq = fixtures.alsRequestDetailsDto();
+  const proxyIds = ['proxy123', 'proxy098'];
+  let isOk = await proxyCache.setSendToProxiesList(alsReq, proxyIds, 1);
+  expect(isOk).toBe(true);
+  isOk = await proxyCache.setSendToProxiesList(alsReq, ['proxyAB'], 1);
+  expect(isOk).toBe(false);
+  return true;
+};
+
+export const shareDbInfoForAllConnectedInstances = async (proxyCache: IProxyCache, anotherProxyCache: IProxyCache) => {
+  const alsReq = fixtures.alsRequestDetailsDto();
+  const proxyId = 'proxyXZ';
+
+  const isOk = await proxyCache.setSendToProxiesList(alsReq, [proxyId], 1);
+  expect(isOk).toBe(true);
+
+  const isLast = await anotherProxyCache.receivedErrorResponse(alsReq, proxyId);
+  expect(isLast).toBe(true);
+};
+
 function randomIntSting(): string {
   return String(Date.now()).substring(9);
 }
