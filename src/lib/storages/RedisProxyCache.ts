@@ -3,10 +3,10 @@ import { Cluster } from 'ioredis';
 import * as validation from '../../validation';
 import config from '../../config';
 import { createLogger } from '../../utils';
-import { IProxyCache, RedisProxyCacheConfig, IsLastFailure, AlsRequestDetails, ILogger, RedisClient } from '../../types';
+import { IProxyCache, RedisProxyCacheConfig, IsLastFailure, AlsRequestDetails, ILogger, RedisClientType } from '../../types';
 import { REDIS_KEYS_PREFIXES, REDIS_SUCCESS, REDIS_IS_CONNECTED_STATUSES } from './constants';
 
-export class RedisProxyCache<ProxyClientType = RedisClient> implements IProxyCache<ProxyClientType> {
+export class RedisProxyCache<ProxyClientType = RedisClientType> implements IProxyCache<ProxyClientType> {
   private readonly redisClient: Cluster;
   private readonly log: ILogger;
   private readonly defaultTtlSec = config.get('defaultTtlSec');
