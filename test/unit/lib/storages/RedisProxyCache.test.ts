@@ -32,6 +32,7 @@ import { ValidationError } from '#src/lib/errors';
 
 import * as useCases from '#test/useCases';
 import * as fixtures from '#test/fixtures';
+import { ProxyClientType } from '#src/types';
 
 const redisProxyConfig = fixtures.redisProxyConfigDto();
 
@@ -39,7 +40,7 @@ describe('RedisProxyCache Tests -->', () => {
   const { cluster, ...redisOptions } = redisProxyConfig;
   const redisClient = new IoRedisMock.Cluster(cluster, { redisOptions });
 
-  let proxyCache: IProxyCache;
+  let proxyCache: IProxyCache<ProxyClientType>;
 
   beforeEach(async () => {
     proxyCache = createProxyCache(STORAGE_TYPES.redis, redisProxyConfig);
