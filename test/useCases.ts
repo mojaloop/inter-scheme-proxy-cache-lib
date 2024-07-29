@@ -23,7 +23,7 @@
  --------------
  **********/
 
-import { IProxyCache } from '#src/types';
+import { IProxyCache, ProxyClientType } from '#src/types';
 import * as fixtures from '#test/fixtures';
 
 /*
@@ -32,7 +32,7 @@ import * as fixtures from '#test/fixtures';
   Is supposed to be used in unit/integration tests.
  */
 
-export const proxyMappingUseCase = async (proxyCache: IProxyCache) => {
+export const proxyMappingUseCase = async (proxyCache: IProxyCache<ProxyClientType>) => {
   expect(proxyCache.isConnected).toBe(true);
 
   const dfspId = `dfsp-${randomIntSting()}`;
@@ -55,7 +55,7 @@ export const proxyMappingUseCase = async (proxyCache: IProxyCache) => {
   return true;
 };
 
-export const detectFinalErrorCallbackUseCase = async (proxyCache: IProxyCache) => {
+export const detectFinalErrorCallbackUseCase = async (proxyCache: IProxyCache<ProxyClientType>) => {
   const alsReq = fixtures.alsRequestDetailsDto();
   const proxyIds = ['proxyA', 'proxyB', 'proxyC'];
 

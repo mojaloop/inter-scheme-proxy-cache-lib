@@ -1,9 +1,11 @@
+import Redis, { Cluster } from 'ioredis';
 import { storageTypeValues } from '../constants';
 import { LogLevel, Prettify } from './utils';
 
 export type StorageType = (typeof storageTypeValues)[number];
+export type ProxyClientType = Cluster | Redis |  any; // define other real types here
 
-export interface IProxyCache {
+export interface IProxyCache<ProxyClientType> {
   addDfspIdToProxyMapping: (dfspId: string, proxyId: string) => Promise<boolean>;
   lookupProxyByDfspId: (dfspId: string) => Promise<string | null>;
   removeDfspIdFromProxyMapping: (dfspId: string) => Promise<boolean>;
@@ -24,6 +26,7 @@ export interface IProxyCache {
   disconnect: () => Promise<boolean>;
   healthCheck: () => Promise<boolean>;
   isConnected: boolean;
+  client: ProxyClientType;
 }
 
 export type PartyIdType = string; // todo: use enum for this type
@@ -36,7 +39,7 @@ export type AlsRequestDetails = {
 
 export type IsLastFailure = boolean;
 
-export type ProxyCacheFactory = (type: StorageType, proxyConfig: ProxyCacheConfig) => IProxyCache;
+export type ProxyCacheFactory = (type: StorageType, proxyConfig: ProxyCacheConfig) => IProxyCache<ProxyClientType>;
 // todo: think about making proxyConfig optional, and assemble it using env vars if it wasn't passed
 
 export type ProxyCacheConfig = RedisProxyCacheConfig | MySqlProxyCacheConfig;

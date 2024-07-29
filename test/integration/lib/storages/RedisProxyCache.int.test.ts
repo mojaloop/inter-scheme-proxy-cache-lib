@@ -24,6 +24,7 @@
  **********/
 
 import { env } from 'node:process';
+import { Cluster } from 'ioredis';
 import { createProxyCache, IProxyCache, STORAGE_TYPES } from '#src/index';
 import { logger } from '#src/utils';
 
@@ -37,12 +38,16 @@ const redisProxyConfig = fixtures.redisProxyConfigDto({ cluster });
 logger.info('redisProxyConfig', redisProxyConfig);
 
 describe('RedisProxyCache Integration Tests -->', () => {
-  let proxyCache: IProxyCache;
+  let proxyCache: IProxyCache<Cluster>;
 
   beforeAll(async () => {
     proxyCache = createProxyCache(STORAGE_TYPES.redis, redisProxyConfig);
     await proxyCache.connect();
   });
+
+  beforeEach(() => {
+    proxyCache.client.flushall();
+  })
 
   afterAll(async () => {
     await proxyCache.disconnect();

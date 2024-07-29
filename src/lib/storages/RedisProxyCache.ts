@@ -3,10 +3,10 @@ import { Cluster } from 'ioredis';
 import * as validation from '../../validation';
 import config from '../../config';
 import { createLogger } from '../../utils';
-import { IProxyCache, RedisProxyCacheConfig, IsLastFailure, AlsRequestDetails, ILogger } from '../../types';
+import { IProxyCache, RedisProxyCacheConfig, IsLastFailure, AlsRequestDetails, ILogger, ProxyClientType } from '../../types';
 import { REDIS_KEYS_PREFIXES, REDIS_SUCCESS, REDIS_IS_CONNECTED_STATUSES } from './constants';
 
-export class RedisProxyCache implements IProxyCache {
+export class RedisProxyCache<ProxyClientType = Cluster> implements IProxyCache<ProxyClientType> {
   private readonly redisClient: Cluster;
   private readonly log: ILogger;
   private readonly defaultTtlSec = config.get('defaultTtlSec');
@@ -52,11 +52,11 @@ export class RedisProxyCache implements IProxyCache {
     const uniqueProxyIds = [...new Set(proxyIds)];
     const ttl = ttlSec ?? this.defaultTtlSec;
     const expiryTime = Date.now() + ttl * 1000;
-    const [addedCount] = await this.executePipeline([
-      ['sadd', key, uniqueProxyIds],
-      ['set', expiryKey, expiryTime],
+    const [addedCount, expirySetResult] = await Promise.all([
+      this.redisClient.sadd(key, uniqueProxyIds),
+      this.redisClient.set(expiryKey, expiryTime),
     ]);
-    const isOk = addedCount === uniqueProxyIds.length;
+    const isOk = addedCount === uniqueProxyIds.length && expirySetResult === REDIS_SUCCESS;
     this.log.verbose('setSendToProxiesList is done', { isOk, key, uniqueProxyIds, ttl });
     return isOk;
   }
@@ -117,6 +117,10 @@ export class RedisProxyCache implements IProxyCache {
     const isConnected = REDIS_IS_CONNECTED_STATUSES.includes(this.redisClient.status);
     this.log.debug('isConnected', { isConnected });
     return isConnected;
+  }
+
+  get client(): ProxyClientType {
+    return this.redisClient as ProxyClientType;
   }
 
   private createRedisClient() {
