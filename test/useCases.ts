@@ -23,7 +23,7 @@
  --------------
  **********/
 
-import { IProxyCache, ProxyClientType } from '#src/types';
+import { IProxyCache } from '#src/types';
 import * as fixtures from '#test/fixtures';
 
 /*
@@ -32,7 +32,7 @@ import * as fixtures from '#test/fixtures';
   Is supposed to be used in unit/integration tests.
  */
 
-export const proxyMappingUseCase = async (proxyCache: IProxyCache<ProxyClientType>) => {
+export const proxyMappingUseCase = async (proxyCache: IProxyCache) => {
   expect(proxyCache.isConnected).toBe(true);
 
   const dfspId = `dfsp-${randomIntSting()}`;
@@ -55,7 +55,7 @@ export const proxyMappingUseCase = async (proxyCache: IProxyCache<ProxyClientTyp
   return true;
 };
 
-export const detectFinalErrorCallbackUseCase = async (proxyCache: IProxyCache<ProxyClientType>) => {
+export const detectFinalErrorCallbackUseCase = async (proxyCache: IProxyCache) => {
   const alsReq = fixtures.alsRequestDetailsDto();
   const proxyIds = ['proxyA', 'proxyB', 'proxyC'];
 
@@ -73,6 +73,38 @@ export const detectFinalErrorCallbackUseCase = async (proxyCache: IProxyCache<Pr
   isLast = await proxyCache.receivedErrorResponse(alsReq, 'proxyC');
   expect(isLast).toBe(true);
 
+  return true;
+};
+
+export const setSendToProxiesListOnceUseCase = async (proxyCache: IProxyCache) => {
+  const alsReq = fixtures.alsRequestDetailsDto();
+  const proxyIds = [`proxy1-${Date.now()}`, `proxy2-${Date.now()}`];
+  let isOk = await proxyCache.setSendToProxiesList(alsReq, proxyIds, 1);
+  expect(isOk).toBe(true);
+  isOk = await proxyCache.setSendToProxiesList(alsReq, proxyIds, 1);
+  expect(isOk).toBe(false);
+  return true;
+};
+
+export const notSetSendToProxiesListForTheSameAlsRequestUseCase = async (proxyCache: IProxyCache) => {
+  const alsReq = fixtures.alsRequestDetailsDto();
+  const proxyIds = ['proxy123', 'proxy098'];
+  let isOk = await proxyCache.setSendToProxiesList(alsReq, proxyIds, 1);
+  expect(isOk).toBe(true);
+  isOk = await proxyCache.setSendToProxiesList(alsReq, ['proxyAB'], 1);
+  expect(isOk).toBe(false);
+  return true;
+};
+
+export const shareDbInfoForAllConnectedInstances = async (proxyCache: IProxyCache, anotherProxyCache: IProxyCache) => {
+  const alsReq = fixtures.alsRequestDetailsDto();
+  const proxyId = 'proxyXZ';
+
+  const isOk = await proxyCache.setSendToProxiesList(alsReq, [proxyId], 1);
+  expect(isOk).toBe(true);
+
+  const isLast = await anotherProxyCache.receivedErrorResponse(alsReq, proxyId);
+  expect(isLast).toBe(true);
   return true;
 };
 

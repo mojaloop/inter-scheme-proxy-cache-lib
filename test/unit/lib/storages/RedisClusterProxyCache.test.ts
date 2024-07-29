@@ -27,31 +27,30 @@ import { IoRedisMock } from '../../mocks';
 jest.mock('ioredis', () => IoRedisMock);
 
 import { setTimeout as sleep } from 'node:timers/promises';
-import { createProxyCache, IProxyCache, STORAGE_TYPES } from '#src/index';
+import { createProxyCache, IProxyCache, STORAGE_TYPES, RedisClientType } from '#src/index';
 import { RedisProxyCache } from '#src/lib/storages';
 import { ValidationError } from '#src/lib/errors';
 
 import * as useCases from '#test/useCases';
 import * as fixtures from '#test/fixtures';
-import { RedisClientType } from '#src/types';
 
-const redisProxyConfig = fixtures.redisProxyConfigDto();
+const redisClusterProxyConfig = fixtures.redisClusterProxyConfigDto();
 
-describe('RedisProxyCache Tests -->', () => {
-  const redisClient = new IoRedisMock(redisProxyConfig);
+describe('RedisClusterProxyCache Tests -->', () => {
+  const { cluster, ...redisOptions } = redisClusterProxyConfig;
+  const redisClient = new IoRedisMock.Cluster(cluster, { redisOptions });
 
-  let proxyCache: IProxyCache<RedisClientType>;
-  let anotherProxyCache: IProxyCache<RedisClientType>;
+  let proxyCache: IProxyCache;
+  let anotherProxyCache: IProxyCache;
 
   beforeAll(async () => {
-    proxyCache = createProxyCache(STORAGE_TYPES.redis, redisProxyConfig) as IProxyCache<RedisClientType>;
-    anotherProxyCache = createProxyCache(STORAGE_TYPES.redis, redisProxyConfig) as IProxyCache<RedisClientType>;
-
+    proxyCache = createProxyCache(STORAGE_TYPES.redisCluster, redisClusterProxyConfig) as IProxyCache
+    anotherProxyCache = createProxyCache(STORAGE_TYPES.redisCluster, redisClusterProxyConfig) as IProxyCache;
     // prettier-ignore
     await Promise.any([
       proxyCache.connect(),
       anotherProxyCache.connect(),
-      redisClient.connect(),
+      redisClient.connect()
     ]);
     expect(proxyCache.isConnected).toBe(true);
   });
@@ -99,7 +98,7 @@ describe('RedisProxyCache Tests -->', () => {
       expect(isOk).toBe(true);
     });
 
-    test('should set proxiesList with proper TTL', async () => {
+    test('should set proxiesList with its expiry key', async () => {
       const alsReq = fixtures.alsRequestDetailsDto();
       const proxyIds = ['proxy1', 'proxy2'];
       const ttlSec = 1;
@@ -107,18 +106,23 @@ describe('RedisProxyCache Tests -->', () => {
       expect(isOk).toBe(true);
 
       const key = RedisProxyCache.formatAlsCacheKey(alsReq);
-      let rawExistsResult = await redisClient.exists(key);
+      const expiryKey = RedisProxyCache.formatAlsCacheExpiryKey(alsReq);
+      let [rawExistsResult, rawExpiryKeyExistsResult] = await Promise.all([
+        await redisClient.exists(key),
+        await redisClient.exists(expiryKey)
+      ]);
       expect(rawExistsResult).toBe(1);
+      expect(rawExpiryKeyExistsResult).toBe(1);
 
-      const expiryKey = `${key}:expiresAt`;
-      const rawTtlExistsResult = await redisClient.exists(expiryKey);
-      expect(rawTtlExistsResult).toBe(1);
-      
       await sleep(ttlSec * 1000);
-      
-      // ensure that key is not removed by Redis
-      rawExistsResult = await redisClient.exists(key);
+
+      // assert that the keys were not removed by Redis
+      [rawExistsResult, rawExpiryKeyExistsResult] = await Promise.all([
+        await redisClient.exists(key),
+        await redisClient.exists(expiryKey)
+      ]);
       expect(rawExistsResult).toBe(1);
+      expect(rawExpiryKeyExistsResult).toBe(1);
     });
 
     test('should throw validation error if alsRequest is invalid', async () => {

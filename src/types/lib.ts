@@ -5,7 +5,7 @@ import { LogLevel, Prettify } from './utils';
 export type StorageType = (typeof storageTypeValues)[number];
 export type ProxyClientType = RedisClientType | MysqlClientType;
 
-export interface IProxyCache<ProxyClientType> {
+export interface IProxyCache<ProxyClientType = RedisClientType | MysqlClientType> {
   addDfspIdToProxyMapping: (dfspId: string, proxyId: string) => Promise<boolean>;
   lookupProxyByDfspId: (dfspId: string) => Promise<string | null>;
   removeDfspIdFromProxyMapping: (dfspId: string) => Promise<boolean>;
@@ -42,13 +42,14 @@ export type IsLastFailure = boolean;
 export type ProxyCacheFactory = (type: StorageType, proxyConfig: ProxyCacheConfig) => IProxyCache<ProxyClientType>;
 // todo: think about making proxyConfig optional, and assemble it using env vars if it wasn't passed
 
-export type ProxyCacheConfig = RedisProxyCacheConfig | MySqlProxyCacheConfig;
+export type ProxyCacheConfig = RedisProxyCacheConfig | RedisClusterProxyCacheConfig | MySqlProxyCacheConfig;
 
-export type RedisProxyCacheConfig = Prettify<RedisConnectionConfig & RedisOptions>;
+export type RedisProxyCacheConfig = Prettify<BasicConnectionConfig & RedisOptions>;
 
-export type RedisConnectionConfig = {
+export type RedisClusterProxyCacheConfig = Prettify<RedisClusterConnectionConfig & RedisClusterOptions>;
+
+export type RedisClusterConnectionConfig = {
   cluster: BasicConnectionConfig[];
-  // todo: think, if it's better to add also { host, port } options for standalone redis
 };
 
 export type RedisOptions = {
@@ -60,7 +61,9 @@ export type RedisOptions = {
   // define all needed options here
 };
 
-export type RedisClientType = Redis | Cluster; 
+export type RedisClientType = Redis | Cluster;
+ 
+export type RedisClusterOptions = RedisOptions;
 
 /** **(!)**  _MySqlProxyCacheConfig_ is not supported yet */
 // prettier-ignore

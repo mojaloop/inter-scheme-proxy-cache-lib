@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.2.0](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/compare/v2.2.0-snapshot.0...v2.2.0) (2024-07-29)
+
+
+### Features
+
+* **csi-369:** removed duplication in ajv validation ([33d7954](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/33d7954b29575a7f06b7c627d38f054ac7b1b71b))
+
 ## [1.4.0](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/compare/v1.3.0...v1.4.0) (2024-07-06)
 
 

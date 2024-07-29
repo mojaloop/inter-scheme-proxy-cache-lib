@@ -32,29 +32,31 @@ import { RedisClientType } from '#src/types';
 import * as useCases from '#test/useCases';
 import * as fixtures from '#test/fixtures';
 
-const port = parseInt(env.REDIS_PORT || '');
+const port = parseInt(env.REDIS_STANDALONE_PORT || '');
+const portCluster = parseInt(env.REDIS_CLUSTER_PORT || '');
 // todo: use convict
-const cluster = [{ host: 'localhost', port }];
-const redisProxyConfig = fixtures.redisProxyConfigDto({ cluster });
-logger.info('redisProxyConfig', redisProxyConfig);
+
+const redisProxyConfig = fixtures.redisProxyConfigDto({ port });
+const redisClusterProxyConfig = fixtures.redisClusterProxyConfigDto({
+  cluster: [{ host: 'localhost', port: portCluster }],
+});
+logger.info('redis proxyConfigs', { redisClusterProxyConfig, redisProxyConfig });
 
 describe('RedisProxyCache Integration Tests -->', () => {
-  let proxyCache: IProxyCache<RedisClientType>;
+  const runUseCases = (proxyCache: IProxyCache<RedisClientType>, anotherProxyCache: IProxyCache<RedisClientType>) => {
+    beforeEach(() => {
+      proxyCache.client.flushall();
+      anotherProxyCache.client.flushall();
+    })
+    
+    beforeAll(async () => {
+      await Promise.all([proxyCache.connect(), anotherProxyCache.connect()]);
+    });
 
-  beforeAll(async () => {
-    proxyCache = createProxyCache(STORAGE_TYPES.redis, redisProxyConfig) as IProxyCache<RedisClientType>;
-    await proxyCache.connect();
-  });
+    afterAll(async () => {
+      await Promise.all([proxyCache.disconnect(), anotherProxyCache.disconnect()]);
+    });
 
-  beforeEach(() => {
-    proxyCache.client.flushall();
-  })
-
-  afterAll(async () => {
-    await proxyCache.disconnect();
-  });
-
-  describe('Use Cases Tests -->', () => {
     test('should perform proxyMapping use case', async () => {
       await useCases.proxyMappingUseCase(proxyCache);
     });
@@ -63,35 +65,29 @@ describe('RedisProxyCache Integration Tests -->', () => {
       await useCases.detectFinalErrorCallbackUseCase(proxyCache);
     });
 
-    test('should have shared db info for all connected instances', async () => {
-      const anotherProxyCache = createProxyCache(STORAGE_TYPES.redis, redisProxyConfig);
-      await anotherProxyCache.connect();
-      const alsReq = fixtures.alsRequestDetailsDto();
-      const proxyId = 'proxyAB';
-
-      const isOk = await proxyCache.setSendToProxiesList(alsReq, [proxyId], 1);
-      expect(isOk).toBe(true);
-
-      const isLast = await anotherProxyCache.receivedErrorResponse(alsReq, proxyId);
-      expect(isLast).toBe(true);
-
-      await anotherProxyCache.disconnect();
+    test('should save only the first alsRequest', async () => {
+      await useCases.setSendToProxiesListOnceUseCase(proxyCache);
     });
+
+    test('should have shared db info for all connected instances', async () => {
+      await useCases.shareDbInfoForAllConnectedInstances(proxyCache, anotherProxyCache);
+    });
+
+    test('should have healthCheck method', async () => {
+      const isOk = await proxyCache.healthCheck();
+      expect(isOk).toBe(true);
+    });
+  };
+
+  describe('Use Cases Tests with redis cluster -->', () => {
+    const proxyCache = createProxyCache(STORAGE_TYPES.redisCluster, redisClusterProxyConfig) as IProxyCache<RedisClientType>;
+    const anotherProxyCache = createProxyCache(STORAGE_TYPES.redisCluster, redisClusterProxyConfig) as IProxyCache<RedisClientType>;
+    runUseCases(proxyCache, anotherProxyCache);
   });
 
-  test('should save only the first alsRequest', async () => {
-    const alsReq = fixtures.alsRequestDetailsDto();
-    const proxyIds = ['proxy1', 'proxy2', 'proxy3'];
-
-    const [isOk1, isOk2] = await Promise.all([
-      proxyCache.setSendToProxiesList(alsReq, proxyIds, 1),
-      proxyCache.setSendToProxiesList(alsReq, proxyIds, 1),
-    ]);
-    expect(isOk1).not.toBe(isOk2);
-  });
-
-  test('should have healthCheck method', async () => {
-    const isOk = await proxyCache.healthCheck();
-    expect(isOk).toBe(true);
+  describe('Use Cases Tests with standalone redis -->', () => {
+    const proxyCache = createProxyCache(STORAGE_TYPES.redis, redisProxyConfig) as IProxyCache<RedisClientType>;
+    const anotherProxyCache = createProxyCache(STORAGE_TYPES.redis, redisProxyConfig) as IProxyCache<RedisClientType>;
+    runUseCases(proxyCache, anotherProxyCache);
   });
 });

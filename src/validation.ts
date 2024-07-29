@@ -27,32 +27,47 @@
  * We need a separate validation, coz the library might be used in JS projects, where TS type checks are not available
  */
 import Ajv, { JSONSchemaType } from 'ajv';
-import { RedisProxyCacheConfig, BasicConnectionConfig, AlsRequestDetails } from './types';
+import { PropertiesSchema } from 'ajv/dist/types/json-schema';
+import {
+  RedisProxyCacheConfig,
+  RedisOptions,
+  RedisClusterProxyCacheConfig,
+  RedisClusterOptions,
+  BasicConnectionConfig,
+  AlsRequestDetails,
+} from './types';
 import { ValidationError } from '../src/lib';
 
 const ajv = new Ajv();
 
-const ClusterSchema: JSONSchemaType<BasicConnectionConfig> = {
+const BasicConnectionSchema: JSONSchemaType<BasicConnectionConfig> = {
   type: 'object',
   properties: {
-    host: { type: 'string' },
+    host: { type: 'string', minLength: 1 },
     port: { type: 'integer' },
   },
   required: ['host', 'port'],
   additionalProperties: false,
 };
 
-const RedisProxyCacheConfigSchema: JSONSchemaType<RedisProxyCacheConfig> = {
+const RedisOptionsSchema: JSONSchemaType<RedisOptions> = {
   type: 'object',
   properties: {
-    cluster: { type: 'array', items: ClusterSchema, minItems: 1 },
     username: { type: 'string', nullable: true },
     password: { type: 'string', nullable: true },
     lazyConnect: { type: 'boolean', nullable: true },
     db: { type: 'number', nullable: true },
-    // find a better way to define optional params (without nullable: true)
   },
-  required: ['cluster'],
+  additionalProperties: true,
+};
+
+const RedisProxyCacheConfigSchema: JSONSchemaType<RedisProxyCacheConfig> = {
+  type: 'object',
+  properties: {
+    ...(BasicConnectionSchema.properties as PropertiesSchema<BasicConnectionConfig>),
+    ...(RedisOptionsSchema.properties as PropertiesSchema<RedisOptions>),
+  },
+  required: ['host', 'port'],
   additionalProperties: true,
 };
 const redisProxyCacheConfigValidatingFn = ajv.compile<RedisProxyCacheConfig>(RedisProxyCacheConfigSchema);
@@ -60,7 +75,29 @@ const redisProxyCacheConfigValidatingFn = ajv.compile<RedisProxyCacheConfig>(Red
 export const validateRedisProxyCacheConfig = (cacheConfig: unknown): RedisProxyCacheConfig => {
   const isValid = redisProxyCacheConfigValidatingFn(cacheConfig);
   if (!isValid) {
-    const errDetails = `redisProxyCacheConfig: ${redisProxyCacheConfigValidatingFn.errors![0]!.message}`;
+    const errDetails = `redisProxyCacheConfig error: ${redisProxyCacheConfigValidatingFn.errors![0]!.message}`;
+    throw ValidationError.invalidFormat(errDetails);
+  }
+  return cacheConfig;
+};
+
+const RedisClusterProxyCacheConfigSchema: JSONSchemaType<RedisClusterProxyCacheConfig> = {
+  type: 'object',
+  properties: {
+    cluster: { type: 'array', items: BasicConnectionSchema, minItems: 1 },
+    ...(RedisOptionsSchema.properties as PropertiesSchema<RedisClusterOptions>),
+  },
+  required: ['cluster'],
+  additionalProperties: true,
+};
+const redisClusterProxyCacheConfigValidatingFn = ajv.compile<RedisClusterProxyCacheConfig>(
+  RedisClusterProxyCacheConfigSchema,
+);
+
+export const validateRedisClusterProxyCacheConfig = (cacheConfig: unknown): RedisClusterProxyCacheConfig => {
+  const isValid = redisClusterProxyCacheConfigValidatingFn(cacheConfig);
+  if (!isValid) {
+    const errDetails = `redisClusterProxyCacheConfig error: ${redisClusterProxyCacheConfigValidatingFn.errors![0]!.message}`;
     throw ValidationError.invalidFormat(errDetails);
   }
   return cacheConfig;
