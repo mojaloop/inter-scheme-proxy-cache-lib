@@ -41,6 +41,7 @@ export class RedisProxyCache implements IProxyCache {
 
   async setSendToProxiesList(alsReq: AlsRequestDetails, proxyIds: string[], ttlSec: number): Promise<boolean> {
     const key = RedisProxyCache.formatAlsCacheKey(alsReq);
+    const expiryKey = RedisProxyCache.formatAlsCacheExpiryKey(alsReq);
 
     const isExists = await this.redisClient.exists(key);
     if (isExists) {
@@ -51,7 +52,6 @@ export class RedisProxyCache implements IProxyCache {
     const uniqueProxyIds = [...new Set(proxyIds)];
     const ttl = ttlSec ?? this.defaultTtlSec;
     const expiryTime = Date.now() + ttl * 1000;
-    const expiryKey = `${key}:expiresAt`;
     const [addedCount] = await this.executePipeline([
       ['sadd', key, uniqueProxyIds],
       ['set', expiryKey, expiryTime],
@@ -169,6 +169,10 @@ export class RedisProxyCache implements IProxyCache {
   static formatAlsCacheKey(alsReq: AlsRequestDetails): string {
     validation.validateAlsRequestDetails(alsReq);
     return `${REDIS_KEYS_PREFIXES.als}:${alsReq.sourceId}:${alsReq.type}:${alsReq.partyId}`;
+  }
+
+  static formatAlsCacheExpiryKey(alsReq: AlsRequestDetails): string {
+    return `${RedisProxyCache.formatAlsCacheKey(alsReq)}:expiresAt`;
   }
 
   static formatDfspCacheKey(dfspId: string): string {
