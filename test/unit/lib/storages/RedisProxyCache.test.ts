@@ -108,10 +108,15 @@ describe('RedisProxyCache Tests -->', () => {
       let rawExistsResult = await redisClient.exists(key);
       expect(rawExistsResult).toBe(1);
 
-      await new Promise((resolve) => setTimeout(resolve, ttlSec * 1000));
+      const expiryKey = `${key}:expiresAt`;
+      const rawTtlExistsResult = await redisClient.exists(expiryKey);
+      expect(rawTtlExistsResult).toBe(1);
 
+      await new Promise((resolve) => setTimeout(resolve, ttlSec * 1000));
+      
+      // ensure that key is not removed by Redis
       rawExistsResult = await redisClient.exists(key);
-      expect(rawExistsResult).toBe(0);
+      expect(rawExistsResult).toBe(1);
     });
 
     test('should throw validation error if alsRequest is invalid', async () => {
