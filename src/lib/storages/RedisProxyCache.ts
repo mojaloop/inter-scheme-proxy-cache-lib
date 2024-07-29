@@ -102,7 +102,7 @@ export class RedisProxyCache<ProxyClientType = RedisClientType> implements IProx
         this.redisClient.del(key),
         this.redisClient.del(expiryKey)
       ]);
-      this.log.info('receivedErrorResponse: last response received, deleting keys...', { isLast, delKeyCount, delExpiryCount });
+      this.log.info('receivedErrorResponse: last response received, keys were deleted', { isLast, delKeyCount, delExpiryCount });
     }
 
     this.log.info('receivedErrorResponse is done', { isLast, alsReq, delCount, card });
