@@ -3,7 +3,7 @@ import { storageTypeValues } from '../constants';
 import { LogLevel, Prettify } from './utils';
 
 export type StorageType = (typeof storageTypeValues)[number];
-export type ProxyClientType = Cluster | Redis |  any; // define other real types here
+export type ProxyClientType = Cluster | Redis | unknown; // define other real types here
 
 export interface IProxyCache<ProxyClientType> {
   addDfspIdToProxyMapping: (dfspId: string, proxyId: string) => Promise<boolean>;
