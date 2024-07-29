@@ -76,20 +76,34 @@ export class RedisProxyCache<ProxyClientType = RedisClientType> implements IProx
 
   async receivedSuccessResponse(alsReq: AlsRequestDetails): Promise<boolean> {
     const key = RedisProxyCache.formatAlsCacheKey(alsReq);
-    const delResult = await this.redisClient.del(key);
-    const isDeleted = delResult === 1;
-    this.log.debug('sendToProxiesList is deleted', { isDeleted, delResult });
+    const expiryKey = RedisProxyCache.formatAlsCacheExpiryKey(alsReq);
+    const [delResult, delExpiryResult] = await Promise.all([
+      this.redisClient.del(key),
+      this.redisClient.del(expiryKey),
+    ]);
+    const isDeleted = delResult === 1 && delExpiryResult === 1;
+    this.log.debug('sendToProxiesList is deleted', { isDeleted, delResult, delExpiryResult });
     return isDeleted;
   }
 
   async receivedErrorResponse(alsReq: AlsRequestDetails, proxyId: string): Promise<IsLastFailure> {
     const key = RedisProxyCache.formatAlsCacheKey(alsReq);
+    const expiryKey = RedisProxyCache.formatAlsCacheExpiryKey(alsReq);
 
     const [delCount, card] = await this.executePipeline([
       ['srem', key, proxyId],
       ['scard', key],
-    ]);
-    const isLast = delCount === 1 && card === 0;
+    ])
+
+    const isLast = delCount === 1 && card === 0
+
+    if (isLast) {
+      const [delKeyCount, delExpiryCount] = await Promise.all([
+        this.redisClient.del(key),
+        this.redisClient.del(expiryKey)
+      ]);
+      this.log.info('receivedErrorResponse: last response received, deleting keys...', { isLast, delKeyCount, delExpiryCount });
+    }
 
     this.log.info('receivedErrorResponse is done', { isLast, alsReq, delCount, card });
     return isLast;
