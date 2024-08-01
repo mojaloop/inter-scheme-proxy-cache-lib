@@ -10,7 +10,6 @@ import {
   IsLastFailure,
   AlsRequestDetails,
   ILogger,
-  RedisClientType
 } from '../../types';
 import { REDIS_KEYS_PREFIXES, REDIS_SUCCESS, REDIS_IS_CONNECTED_STATUSES } from './constants';
 
@@ -19,7 +18,7 @@ type RedisConfig = RedisProxyCacheConfig | RedisClusterProxyCacheConfig;
 
 const isClusterConfig = (config: RedisConfig): config is RedisClusterProxyCacheConfig => 'cluster' in config;
 
-export class RedisProxyCache<ProxyClientType = RedisClientType> implements IProxyCache<ProxyClientType> {
+export class RedisProxyCache implements IProxyCache {
   private readonly redisClient: RedisClient;
   private readonly log: ILogger;
   private readonly defaultTtlSec = config.get('defaultTtlSec');
@@ -144,10 +143,6 @@ export class RedisProxyCache<ProxyClientType = RedisClientType> implements IProx
     const isConnected = REDIS_IS_CONNECTED_STATUSES.includes(this.redisClient.status);
     this.log.debug('isConnected', { isConnected });
     return isConnected;
-  }
-
-  get client(): ProxyClientType {
-    return this.redisClient as ProxyClientType;
   }
 
   private createRedisClient() {

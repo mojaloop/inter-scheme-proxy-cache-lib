@@ -1,11 +1,9 @@
-import Redis, { Cluster } from 'ioredis';
 import { storageTypeValues } from '../constants';
 import { LogLevel, Prettify } from './utils';
 
 export type StorageType = (typeof storageTypeValues)[number];
-export type ProxyClientType = RedisClientType | MysqlClientType;
 
-export interface IProxyCache<ProxyClientType = RedisClientType | MysqlClientType> {
+export interface IProxyCache {
   addDfspIdToProxyMapping: (dfspId: string, proxyId: string) => Promise<boolean>;
   lookupProxyByDfspId: (dfspId: string) => Promise<string | null>;
   removeDfspIdFromProxyMapping: (dfspId: string) => Promise<boolean>;
@@ -26,7 +24,6 @@ export interface IProxyCache<ProxyClientType = RedisClientType | MysqlClientType
   disconnect: () => Promise<boolean>;
   healthCheck: () => Promise<boolean>;
   isConnected: boolean;
-  client: ProxyClientType;
 }
 
 export type PartyIdType = string; // todo: use enum for this type
@@ -39,7 +36,7 @@ export type AlsRequestDetails = {
 
 export type IsLastFailure = boolean;
 
-export type ProxyCacheFactory = (type: StorageType, proxyConfig: ProxyCacheConfig) => IProxyCache<ProxyClientType>;
+export type ProxyCacheFactory = (type: StorageType, proxyConfig: ProxyCacheConfig) => IProxyCache;
 // todo: think about making proxyConfig optional, and assemble it using env vars if it wasn't passed
 
 export type ProxyCacheConfig = RedisProxyCacheConfig | RedisClusterProxyCacheConfig | MySqlProxyCacheConfig;
@@ -60,8 +57,6 @@ export type RedisOptions = {
   db?: number; // Defaults to 0
   // define all needed options here
 };
-
-export type RedisClientType = Redis | Cluster;
  
 export type RedisClusterOptions = RedisOptions;
 
@@ -73,8 +68,6 @@ export type MySqlProxyCacheConfig = Prettify<BasicConnectionConfig & {
   password?: string;
   // todo: add mySql-specific options
 }>;
-
-export type MysqlClientType = unknown; // update when mysql is supported
 
 export type BasicConnectionConfig = {
   host: string;

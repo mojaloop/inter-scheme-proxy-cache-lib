@@ -42,6 +42,12 @@ export class IoRedisMock extends RedisMock {
   get status() {
     return this.connected ? 'ready' : this.lazyConnect ? 'wait' : 'end';
   }
+
+  // For some reason, ioredis-mock is not updating the status field
+  async disconnect() {
+    super.disconnect();
+    this.connected = false;
+  }
 }
 
 class IoRedisMockCluster extends IoRedisMock {

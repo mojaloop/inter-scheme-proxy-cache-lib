@@ -22,12 +22,12 @@
  * Eugen Klymniuk <eugen.klymniuk@infitx.com>
  --------------
  **********/
+ import { IoRedisMock } from '../../../unit/mocks';
+ jest.mock('ioredis', () => IoRedisMock);
 
 import { env } from 'node:process';
-import { Cluster } from 'ioredis';
 import { createProxyCache, IProxyCache, STORAGE_TYPES } from '#src/index';
 import { logger } from '#src/utils';
-import { RedisClientType } from '#src/types';
 
 import * as useCases from '#test/useCases';
 import * as fixtures from '#test/fixtures';
@@ -43,18 +43,19 @@ const redisClusterProxyConfig = fixtures.redisClusterProxyConfigDto({
 logger.info('redis proxyConfigs', { redisClusterProxyConfig, redisProxyConfig });
 
 describe('RedisProxyCache Integration Tests -->', () => {
-  const runUseCases = (proxyCache: IProxyCache<RedisClientType>, anotherProxyCache: IProxyCache<RedisClientType>) => {
+  const redisClient = new IoRedisMock(redisProxyConfig);
+
+  const runUseCases = (proxyCache: IProxyCache, anotherProxyCache: IProxyCache) => {
     beforeEach(() => {
-      proxyCache.client.flushall();
-      anotherProxyCache.client.flushall();
+      redisClient.flushall();
     })
     
     beforeAll(async () => {
-      await Promise.all([proxyCache.connect(), anotherProxyCache.connect()]);
+      await Promise.all([proxyCache.connect(), anotherProxyCache.connect(), redisClient.connect()]);
     });
 
     afterAll(async () => {
-      await Promise.all([proxyCache.disconnect(), anotherProxyCache.disconnect()]);
+      await Promise.all([proxyCache.disconnect(), anotherProxyCache.disconnect(), redisClient.disconnect()]);
     });
 
     test('should perform proxyMapping use case', async () => {
@@ -80,14 +81,14 @@ describe('RedisProxyCache Integration Tests -->', () => {
   };
 
   describe('Use Cases Tests with redis cluster -->', () => {
-    const proxyCache = createProxyCache(STORAGE_TYPES.redisCluster, redisClusterProxyConfig) as IProxyCache<RedisClientType>;
-    const anotherProxyCache = createProxyCache(STORAGE_TYPES.redisCluster, redisClusterProxyConfig) as IProxyCache<RedisClientType>;
+    const proxyCache = createProxyCache(STORAGE_TYPES.redisCluster, redisClusterProxyConfig);
+    const anotherProxyCache = createProxyCache(STORAGE_TYPES.redisCluster, redisClusterProxyConfig);
     runUseCases(proxyCache, anotherProxyCache);
   });
 
   describe('Use Cases Tests with standalone redis -->', () => {
-    const proxyCache = createProxyCache(STORAGE_TYPES.redis, redisProxyConfig) as IProxyCache<RedisClientType>;
-    const anotherProxyCache = createProxyCache(STORAGE_TYPES.redis, redisProxyConfig) as IProxyCache<RedisClientType>;
+    const proxyCache = createProxyCache(STORAGE_TYPES.redis, redisProxyConfig);
+    const anotherProxyCache = createProxyCache(STORAGE_TYPES.redis, redisProxyConfig);
     runUseCases(proxyCache, anotherProxyCache);
   });
 });

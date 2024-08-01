@@ -33,19 +33,18 @@ import { ValidationError } from '#src/lib/errors';
 
 import * as useCases from '#test/useCases';
 import * as fixtures from '#test/fixtures';
-import { RedisClientType } from '#src/types';
 
 const redisProxyConfig = fixtures.redisProxyConfigDto();
 
 describe('RedisProxyCache Tests -->', () => {
   const redisClient = new IoRedisMock(redisProxyConfig);
 
-  let proxyCache: IProxyCache<RedisClientType>;
-  let anotherProxyCache: IProxyCache<RedisClientType>;
+  let proxyCache: IProxyCache;
+  let anotherProxyCache: IProxyCache;
 
   beforeAll(async () => {
-    proxyCache = createProxyCache(STORAGE_TYPES.redis, redisProxyConfig) as IProxyCache<RedisClientType>;
-    anotherProxyCache = createProxyCache(STORAGE_TYPES.redis, redisProxyConfig) as IProxyCache<RedisClientType>;
+    proxyCache = createProxyCache(STORAGE_TYPES.redis, redisProxyConfig) as IProxyCache;
+    anotherProxyCache = createProxyCache(STORAGE_TYPES.redis, redisProxyConfig) as IProxyCache;
 
     // prettier-ignore
     await Promise.any([
