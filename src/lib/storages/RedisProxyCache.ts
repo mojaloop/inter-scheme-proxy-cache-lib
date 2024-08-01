@@ -100,11 +100,11 @@ export class RedisProxyCache implements IProxyCache {
       isDeleted = delResult === 1 && delExpiryResult === 1;
       logMeta = { isDeleted, delResult, delExpiryResult }
     } else {
-      const [delResult] = await this.executePipeline([
+      const delResult = await this.executePipeline([
         ['del', key],
         ['del', expiryKey],
       ]);
-      isDeleted = delResult === 2;
+      isDeleted = delResult[0] === 1 && delResult[1] === 1;
       logMeta = { isDeleted, delResult }
     }
     this.log.debug('sendToProxiesList is deleted', logMeta);
