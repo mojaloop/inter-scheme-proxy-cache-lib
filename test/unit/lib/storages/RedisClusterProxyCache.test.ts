@@ -44,8 +44,8 @@ describe('RedisClusterProxyCache Tests -->', () => {
   let anotherProxyCache: IProxyCache;
 
   beforeAll(async () => {
-    proxyCache = createProxyCache(STORAGE_TYPES.redisCluster, redisClusterProxyConfig) as IProxyCache
-    anotherProxyCache = createProxyCache(STORAGE_TYPES.redisCluster, redisClusterProxyConfig) as IProxyCache;
+    proxyCache = createProxyCache(STORAGE_TYPES.redisCluster, redisClusterProxyConfig);
+    anotherProxyCache = createProxyCache(STORAGE_TYPES.redisCluster, redisClusterProxyConfig);
     // prettier-ignore
     await Promise.any([
       proxyCache.connect(),

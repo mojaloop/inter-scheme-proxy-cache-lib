@@ -43,8 +43,8 @@ describe('RedisProxyCache Tests -->', () => {
   let anotherProxyCache: IProxyCache;
 
   beforeAll(async () => {
-    proxyCache = createProxyCache(STORAGE_TYPES.redis, redisProxyConfig) as IProxyCache;
-    anotherProxyCache = createProxyCache(STORAGE_TYPES.redis, redisProxyConfig) as IProxyCache;
+    proxyCache = createProxyCache(STORAGE_TYPES.redis, redisProxyConfig);
+    anotherProxyCache = createProxyCache(STORAGE_TYPES.redis, redisProxyConfig);
 
     // prettier-ignore
     await Promise.any([
