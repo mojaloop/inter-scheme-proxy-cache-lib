@@ -121,63 +121,6 @@ export class RedisProxyCache implements IProxyCache {
     }
   }
 
-  async processExpiredAlsKeysForCluster(pattern: string, callbackFn: Function, batchSize: number): Promise<any[]> {
-    return Promise.all(
-      (this.redisClient as Cluster).nodes('master').map(async (node) => {
-        return new Promise((resolve, reject) => {
-          this.processNode(node, { pattern, batchSize, callbackFn, resolve, reject })
-        })
-      })
-    )
-  }
-
-  async processExpiredAlsKeysForSingle(pattern: string, callbackFn: Function, batchSize: number): Promise<any[]> {
-    return new Promise((resolve, reject) => {
-      this.processNode(this.redisClient as Redis, { pattern, batchSize, callbackFn, resolve, reject })
-    })
-  }
-
-  async processNode(node: Redis, options: ProcessNodeOptions): Promise<void> {
-    const { pattern: match, batchSize: count, callbackFn, resolve, reject } = options
-    const stream = node.scanStream({ match, count })
-    stream.on('data', async (keys) => {
-      stream.pause()
-      try {
-        await Promise.all(keys.map(callbackFn))
-      } catch (err: unknown) {
-        stream.destroy(err as Error)
-        reject(err)
-      }
-      stream.resume()
-    })
-    stream.on('end', resolve)
-  }
-
-  async processKey(key: string, callbackFn: Function): Promise<any> {
-    const actualKey = key.replace(':expiresAt', '')
-    const expiresAt = await this.redisClient.get(key)
-
-    if (Number(expiresAt) >= Date.now()) return
-    
-    try {
-      await callbackFn(actualKey)
-      if (this.isCluster) {
-        return Promise.all([this.redisClient.del(actualKey), this.redisClient.del(key)])
-      }
-      return this.executePipeline([
-        ['del', actualKey],
-        ['del', key]
-      ])
-    } catch (err: unknown) {
-      /**
-       * We don't want to throw an error here, as it will stop the whole process
-       * and we want to continue with the next keys
-       * We, however, need to decide on how/when to finally give up on a key and remove it from the cache
-       */
-      this.log.error('processKey error', err)
-    }
-  }
-
   async connect(): Promise<boolean> {
     if (this.isConnected) {
       this.log.warn('proxyCache is already connected');
@@ -264,6 +207,66 @@ export class RedisProxyCache implements IProxyCache {
     } catch (error: unknown) {
       this.log.error('pipeline execution failed', error);
       return [];
+    }
+  }
+
+  private async processExpiredAlsKeysForCluster(pattern: string, callbackFn: Function, batchSize: number): Promise<any[]> {
+    return Promise.all(
+      (this.redisClient as Cluster).nodes('master').map(async (node) => {
+        return new Promise((resolve, reject) => {
+          this.processNode(node, { pattern, batchSize, callbackFn, resolve, reject })
+        })
+      })
+    )
+  }
+
+  private async processExpiredAlsKeysForSingle(pattern: string, callbackFn: Function, batchSize: number): Promise<any[]> {
+    return new Promise((resolve, reject) => {
+      this.processNode(this.redisClient as Redis, { pattern, batchSize, callbackFn, resolve, reject })
+    })
+  }
+
+  private async processNode(node: Redis, options: ProcessNodeOptions): Promise<void> {
+    const { pattern: match, batchSize: count, callbackFn, resolve, reject } = options
+    const stream = node.scanStream({ match, count })
+    stream.on('data', async (keys) => {
+      stream.pause()
+      try {
+        await Promise.all(keys.map((key: string) => this.processKey(key, callbackFn)))
+      } catch (err: unknown) {
+        stream.destroy(err as Error)
+        reject(err)
+      }
+      stream.resume()
+    })
+    stream.on('end', resolve)
+  }
+
+  private async processKey(key: string, callbackFn: Function): Promise<any> {
+    const actualKey = key.replace(':expiresAt', '')
+    const expiresAt = await this.redisClient.get(key)
+
+    if (Number(expiresAt) >= Date.now()) return
+    
+    try {
+      await callbackFn(actualKey)
+      if (this.isCluster) {
+        return Promise.all([
+          this.redisClient.del(actualKey),
+          this.redisClient.del(key)
+        ])
+      }
+      return this.executePipeline([
+        ['del', actualKey],
+        ['del', key]
+      ])
+    } catch (err: unknown) {
+      /**
+       * We don't want to throw an error here, as it will stop the whole process
+       * and we want to continue with the next keys
+       * We, however, need to decide on how/when to finally give up on a key and remove it from the cache
+       */
+      this.log.error('processKey error', err)
     }
   }
 
