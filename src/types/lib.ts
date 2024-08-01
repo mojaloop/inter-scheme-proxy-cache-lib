@@ -1,6 +1,7 @@
 import { storageTypeValues } from '../constants';
 import { LogLevel, Prettify } from './utils';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export type StorageType = (typeof storageTypeValues)[number];
 
 export interface IProxyCache {
