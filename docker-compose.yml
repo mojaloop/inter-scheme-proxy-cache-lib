@@ -1,14 +1,47 @@
 version: "3.9"
 
+x-redis-node: &REDIS_NODE
+  image: docker.io/bitnami/redis-cluster:6.2.14
+  environment: &REDIS_ENVS
+    ALLOW_EMPTY_PASSWORD: yes
+    REDIS_NODES: redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4 redis-node-5
+  healthcheck:
+    test: [ "CMD", "redis-cli", "ping" ]
+    timeout: 2s
+
 services:
+  redis-node-0:
+    <<: *REDIS_NODE
+    environment:
+      <<: *REDIS_ENVS
+      REDIS_CLUSTER_CREATOR: yes
+    depends_on:
+      - redis-node-1
+      - redis-node-2
+      - redis-node-3
+      - redis-node-4
+      - redis-node-5
+    ports:
+      - "${REDIS_CLUSTER_PORT}:6379"
+
+  redis-node-1:
+    <<: *REDIS_NODE
+  redis-node-2:
+    <<: *REDIS_NODE
+  redis-node-3:
+    <<: *REDIS_NODE
+  redis-node-4:
+    <<: *REDIS_NODE
+  redis-node-5:
+    <<: *REDIS_NODE
+
+
   redis:
     image: redis:6.2.4-alpine
-    #    image: redis/redis-stack:latest
     restart: "unless-stopped"
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
       - REDIS_PORT=6379
       - REDIS_REPLICATION_MODE=master
-      - REDIS_TLS_ENABLED=no
     ports:
-      - "${REDIS_PORT}:6379"
+      - "${REDIS_STANDALONE_PORT}:6379"

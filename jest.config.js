@@ -7,14 +7,13 @@ module.exports = {
     '^#src/(.*)$': '<rootDir>/src/$1',
     '^#test/(.*)$': '<rootDir>/test/$1',
   },
-  // setupFiles: ['./test/setup.ts'],
+  setupFiles: ['./test/setup.ts'],
   transform: {
     '^.+\\.[tj]s$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.test.json' }],
   },
   collectCoverage: true,
   coveragePathIgnorePatterns: [
-    // '<rootDir>/src/utils/Logger.ts',
-    // '<rootDir>/src/utils/startingProcess.ts',
+    '<rootDir>/src/utils/Logger.ts',
     // move these files to a separate project, and push to npm-registry
   ],
 };

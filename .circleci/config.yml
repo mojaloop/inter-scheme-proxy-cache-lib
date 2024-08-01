@@ -51,7 +51,7 @@ defaults_npm_auth: &defaults_npm_auth
 
 defaults_npm_publish_release: &defaults_npm_publish_release
   name: Publish NPM $RELEASE_TAG artifact
-  command: |
+  command: |   
     source $BASH_ENV
     npm ci
     echo "Publishing tag $RELEASE_TAG"
@@ -269,6 +269,7 @@ jobs:
           command: |
             docker compose build
             docker compose up -d
+            sleep 15 ## todo: find a better way to wait for redis-cluster creation
             npm run test:int
             docker compose down -v
 

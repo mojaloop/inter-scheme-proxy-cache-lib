@@ -23,8 +23,27 @@
  --------------
  **********/
 
-describe('Proxy cache Integration Tests -->', () => {
-  test('dummy test', () => {
-    expect(true).toBe(true);
-  });
-});
+import { ProxyCacheFactory, StorageType, ProxyCacheConfig } from '../types';
+import { validateRedisClusterProxyCacheConfig, validateRedisProxyCacheConfig } from '../validation';
+import { logger } from '../utils';
+import { STORAGE_TYPES } from '../constants';
+import { ProxyCacheError } from './errors';
+import * as storages from './storages';
+
+export const createProxyCache: ProxyCacheFactory = (type: StorageType, proxyConfig: ProxyCacheConfig) => {
+  switch (type) {
+    case STORAGE_TYPES.redis: {
+      return new storages.RedisProxyCache(validateRedisProxyCacheConfig(proxyConfig));
+    }
+    case STORAGE_TYPES.redisCluster: {
+      return new storages.RedisProxyCache(validateRedisClusterProxyCacheConfig(proxyConfig));
+    }
+    case STORAGE_TYPES.mysql:
+      throw new Error('Mysql storage is not implemented yet');
+    default: {
+      const error = ProxyCacheError.unsupportedProxyCacheType();
+      logger.warn(error.message, proxyConfig);
+      throw error;
+    }
+  }
+};
