@@ -90,12 +90,24 @@ export class RedisProxyCache implements IProxyCache {
   async receivedSuccessResponse(alsReq: AlsRequestDetails): Promise<boolean> {
     const key = RedisProxyCache.formatAlsCacheKey(alsReq);
     const expiryKey = RedisProxyCache.formatAlsCacheExpiryKey(alsReq);
-    const [delResult, delExpiryResult] = await Promise.all([
-      this.redisClient.del(key),
-      this.redisClient.del(expiryKey),
-    ]);
-    const isDeleted = delResult === 1 && delExpiryResult === 1;
-    this.log.debug('sendToProxiesList is deleted', { isDeleted, delResult, delExpiryResult });
+    let isDeleted;
+    let logMeta;
+    if (this.isCluster) {
+      const [delResult, delExpiryResult] = await Promise.all([
+        this.redisClient.del(key),
+        this.redisClient.del(expiryKey),
+      ]);
+      isDeleted = delResult === 1 && delExpiryResult === 1;
+      logMeta = { isDeleted, delResult, delExpiryResult }
+    } else {
+      const [delResult] = await this.executePipeline([
+        ['del', key],
+        ['del', expiryKey],
+      ]);
+      isDeleted = delResult === 2;
+      logMeta = { isDeleted, delResult }
+    }
+    this.log.debug('sendToProxiesList is deleted', logMeta);
     return isDeleted;
   }
 
@@ -125,11 +137,9 @@ export class RedisProxyCache implements IProxyCache {
   async processExpiredAlsKeys(callbackFn: Function, batchSize: number): Promise<any[]> {
     const pattern = RedisProxyCache.formatAlsCacheExpiryKey({ sourceId: '*', type: '*', partyId: '*' })
 
-    if (this.isCluster) {
-      return this.processExpiredAlsKeysForCluster(pattern, callbackFn, batchSize);
-    } else {
-      return this.processExpiredAlsKeysForSingle(pattern, callbackFn, batchSize);
-    }
+    return this.isCluster
+      ? this.processExpiredAlsKeysForCluster(pattern, callbackFn, batchSize)
+      : this.processExpiredAlsKeysForSingle(pattern, callbackFn, batchSize);
   }
 
   async connect(): Promise<boolean> {
