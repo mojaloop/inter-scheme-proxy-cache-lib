@@ -264,7 +264,7 @@ export class RedisProxyCache implements IProxyCache {
     stream.on('end', resolve)
   }
 
-  private async processKey(key: string, callbackFn: ProcessKeyCallback): Promise<void> {
+  private async processKey(key: string, callbackFn: ProcessKeyCallback): Promise<any> {
     const actualKey = key.replace(':expiresAt', '')
     const expiresAt = await this.redisClient.get(key)
 
@@ -273,12 +273,12 @@ export class RedisProxyCache implements IProxyCache {
     try {
       await callbackFn(actualKey)
       if (this.isCluster) {
-        await Promise.all([
+        return Promise.all([
           this.redisClient.del(actualKey),
           this.redisClient.del(key)
         ])
       }
-      await this.executePipeline([
+      return this.executePipeline([
         ['del', actualKey],
         ['del', key]
       ])
