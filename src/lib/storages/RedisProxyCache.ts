@@ -15,6 +15,7 @@ import { REDIS_KEYS_PREFIXES, REDIS_SUCCESS, REDIS_IS_CONNECTED_STATUSES } from 
 
 type RedisClient = Redis | Cluster;
 type RedisConfig = RedisProxyCacheConfig | RedisClusterProxyCacheConfig;
+type ProcessNodeOptions = { pattern: string, batchSize: number, callbackFn: Function, resolve: (...args: any[]) => void, reject: (reason?: any) => void }
 
 const isClusterConfig = (config: RedisConfig): config is RedisClusterProxyCacheConfig => 'cluster' in config;
 
@@ -22,10 +23,12 @@ export class RedisProxyCache implements IProxyCache {
   private readonly redisClient: RedisClient;
   private readonly log: ILogger;
   private readonly defaultTtlSec = config.get('defaultTtlSec');
+  private isCluster = false;
 
   constructor(private readonly proxyConfig: RedisConfig) {
     this.log = createLogger(this.constructor.name);
     this.redisClient = this.createRedisClient();
+    this.isCluster = isClusterConfig(proxyConfig)
   }
 
   async addDfspIdToProxyMapping(dfspId: string, proxyId: string): Promise<boolean> {
@@ -106,6 +109,73 @@ export class RedisProxyCache implements IProxyCache {
 
     this.log.info('receivedErrorResponse is done', { isLast, alsReq, delCount, card });
     return isLast;
+  }
+
+  async processExpiredAlsKeys(callbackFn: Function, batchSize: number): Promise<any[]> {
+    const pattern = RedisProxyCache.formatAlsCacheExpiryKey({ sourceId: '*', type: '*', partyId: '*' })
+
+    if (this.isCluster) {
+      return this.processExpiredAlsKeysForCluster(pattern, callbackFn, batchSize);
+    } else {
+      return this.processExpiredAlsKeysForSingle(pattern, callbackFn, batchSize);
+    }
+  }
+
+  async processExpiredAlsKeysForCluster(pattern: string, callbackFn: Function, batchSize: number): Promise<any[]> {
+    return Promise.all(
+      (this.redisClient as Cluster).nodes('master').map(async (node) => {
+        return new Promise((resolve, reject) => {
+          this.processNode(node, { pattern, batchSize, callbackFn, resolve, reject })
+        })
+      })
+    )
+  }
+
+  async processExpiredAlsKeysForSingle(pattern: string, callbackFn: Function, batchSize: number): Promise<any[]> {
+    return new Promise((resolve, reject) => {
+      this.processNode(this.redisClient as Redis, { pattern, batchSize, callbackFn, resolve, reject })
+    })
+  }
+
+  async processNode(node: Redis, options: ProcessNodeOptions): Promise<void> {
+    const { pattern: match, batchSize: count, callbackFn, resolve, reject } = options
+    const stream = node.scanStream({ match, count })
+    stream.on('data', async (keys) => {
+      stream.pause()
+      try {
+        await Promise.all(keys.map(callbackFn))
+      } catch (err: unknown) {
+        stream.destroy(err as Error)
+        reject(err)
+      }
+      stream.resume()
+    })
+    stream.on('end', resolve)
+  }
+
+  async processKey(key: string, callbackFn: Function): Promise<any> {
+    const actualKey = key.replace(':expiresAt', '')
+    const expiresAt = await this.redisClient.get(key)
+
+    if (Number(expiresAt) >= Date.now()) return
+    
+    try {
+      await callbackFn(actualKey)
+      if (this.isCluster) {
+        return Promise.all([this.redisClient.del(actualKey), this.redisClient.del(key)])
+      }
+      return this.executePipeline([
+        ['del', actualKey],
+        ['del', key]
+      ])
+    } catch (err: unknown) {
+      /**
+       * We don't want to throw an error here, as it will stop the whole process
+       * and we want to continue with the next keys
+       * We, however, need to decide on how/when to finally give up on a key and remove it from the cache
+       */
+      this.log.error('processKey error', err)
+    }
   }
 
   async connect(): Promise<boolean> {

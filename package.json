@@ -4,7 +4,8 @@
   "description": "Common component, that provides scheme proxy caching mapping (ISPC)",
   "author": "Eugen Klymniuk (geka-evk)",
   "contributors": [
-    "Eugen Klymniuk <eugen.klymniuk@infitx.com>"
+    "Eugen Klymniuk <eugen.klymniuk@infitx.com>",
+    "Steven Oderayi <steven.oderayi@infitx.com>"
   ],
   "license": "Apache-2.0",
   "main": "dist/index.js",
