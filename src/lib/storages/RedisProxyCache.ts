@@ -67,11 +67,22 @@ export class RedisProxyCache implements IProxyCache {
     const uniqueProxyIds = [...new Set(proxyIds)];
     const ttl = ttlSec ?? this.defaultTtlSec;
     const expiryTime = Date.now() + ttl * 1000;
-    const [addedCount, expirySetResult] = await Promise.all([
-      this.redisClient.sadd(key, uniqueProxyIds),
-      this.redisClient.set(expiryKey, expiryTime),
-    ]);
-    const isOk = addedCount === uniqueProxyIds.length && expirySetResult === REDIS_SUCCESS;
+    let isOk;
+    if(this.isCluster) {
+      // pipeline is not supported in cluster mode for multi-key operations
+      const [addedCount, expirySetResult] = await Promise.all([
+        this.redisClient.sadd(key, uniqueProxyIds),
+        this.redisClient.set(expiryKey, expiryTime),
+      ]);
+      isOk = addedCount === uniqueProxyIds.length && expirySetResult === REDIS_SUCCESS;
+    } else {
+      const [addedCount] = await this.executePipeline([
+        ['sadd', key, ...uniqueProxyIds],
+        ['set', expiryKey, expiryTime],
+      ]);
+      isOk = addedCount === uniqueProxyIds.length;
+    }
+    
     this.log.verbose('setSendToProxiesList is done', { isOk, key, uniqueProxyIds, ttl });
     return isOk;
   }
