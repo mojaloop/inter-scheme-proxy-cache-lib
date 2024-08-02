@@ -11,9 +11,5 @@ get_external_ip() {
   fi
 }
 
-EXT_IP=$(get_external_ip)
-
-echo "External IP: $EXT_IP"
-
 # set/override dynamic variables
-export REDIS_CLUSTER_ANNOUNCE_IP=$EXT_IP
+export REDIS_CLUSTER_ANNOUNCE_IP=$(get_external_ip)
