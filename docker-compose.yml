@@ -71,3 +71,6 @@ services:
       - REDIS_REPLICATION_MODE=master
     ports:
       - "${REDIS_STANDALONE_PORT}:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      timeout: 2s
