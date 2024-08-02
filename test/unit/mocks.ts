@@ -24,7 +24,7 @@
  **********/
 
 import RedisMock, { RedisClusterOptions, RedisOptions } from 'ioredis-mock';
-import { BasicConnectionConfig } from '#src/types';
+import { BasicConnectionConfig } from '../../src/types';
 
 /*
   ioredis-mock doesn't provide a status-field, so we need to override it here
@@ -51,11 +51,15 @@ export class IoRedisMock extends RedisMock {
 }
 
 class IoRedisMockCluster extends IoRedisMock {
-  nodes: IoRedisMock[] = [];
+  _nodes: IoRedisMock[] = [];
 
   constructor(nodesOpts: BasicConnectionConfig[], redisOptions: RedisClusterOptions) {
     super(redisOptions);
-    nodesOpts.forEach((connOpts) => this.nodes.push(new IoRedisMock({ ...connOpts, ...redisOptions })));
+    nodesOpts.forEach((connOpts) => this._nodes.push(new IoRedisMock({ ...connOpts, ...redisOptions })));
+  }
+
+  nodes () {
+    return this._nodes;
   }
 }
 

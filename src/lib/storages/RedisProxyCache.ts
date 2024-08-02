@@ -27,9 +27,9 @@ export class RedisProxyCache implements IProxyCache {
   private isCluster = false;
 
   constructor(private readonly proxyConfig: RedisConfig) {
+    this.isCluster = isClusterConfig(proxyConfig)
     this.log = createLogger(this.constructor.name);
     this.redisClient = this.createRedisClient();
-    this.isCluster = isClusterConfig(proxyConfig)
   }
 
   async addDfspIdToProxyMapping(dfspId: string, proxyId: string): Promise<boolean> {
@@ -251,6 +251,7 @@ export class RedisProxyCache implements IProxyCache {
   private async processNode(node: Redis, options: ProcessNodeOptions): Promise<void> {
     const { pattern: match, batchSize: count, callbackFn, resolve, reject } = options
     const stream = node.scanStream({ match, count })
+
     stream.on('data', async (keys) => {
       stream.pause()
       try {
@@ -261,7 +262,9 @@ export class RedisProxyCache implements IProxyCache {
       }
       stream.resume()
     })
-    stream.on('end', resolve)
+    stream.on('end', () => { 
+      resolve(); 
+    })
   }
 
   private async processKey(key: string, callbackFn: ProcessKeyCallback): Promise<any> {

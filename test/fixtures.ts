@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { RedisProxyCacheConfig, RedisClusterProxyCacheConfig, AlsRequestDetails } from '#src/types';
+import { RedisProxyCacheConfig, RedisClusterProxyCacheConfig, AlsRequestDetails } from '../src/types';
 
 export const redisProxyConfigDto = ({
   host = '127.0.0.1',
