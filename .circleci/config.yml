@@ -272,7 +272,7 @@ jobs:
             ./docker/wait-for-containers.sh
             docker ps
             npm run test:int
-            npm run dc:udown
+            npm run dc:down
 
   vulnerability-check:
     executor: default-docker
