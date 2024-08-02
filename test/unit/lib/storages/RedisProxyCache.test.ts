@@ -225,46 +225,6 @@ describe('RedisProxyCache Tests -->', () => {
 
       await redisClient.flushall();
     })
-
-    // Test needs fixing, IORedisMock.Cluster is not working as expected
-    // with regards to scanStream.on('data') and scanStream.on('end') not being fired
-    test.skip('should process expired keys in cluster mode', async () => {
-      const redisClusterProxyConfig = fixtures.redisClusterProxyConfigDto();
-      const { cluster, ...redisOptions } = redisClusterProxyConfig;
-      const redisClusterClient = new IoRedisMock.Cluster(cluster, { redisOptions });
-      await redisClusterClient.connect();
-      await redisClusterClient.flushall();
-
-      const proxyCacheWithCluster = createProxyCache(STORAGE_TYPES.redisCluster, redisClusterProxyConfig);
-      await proxyCacheWithCluster.connect();
-
-      const alsReq0 = fixtures.alsRequestDetailsDto();
-      const proxyIds = ['proxy1', 'proxy2'];
-      let isOk = await proxyCacheWithCluster.setSendToProxiesList(alsReq0, proxyIds, 2);
-      expect(isOk).toBe(true);
-
-      const alsReq1 = fixtures.alsRequestDetailsDto();
-      isOk = await proxyCacheWithCluster.setSendToProxiesList(alsReq1, proxyIds, 2);
-      expect(isOk).toBe(true);
-
-      const mockCallback = jest.fn().mockResolvedValue(true);
-      const batchSize = 10;
-
-      await sleep(2500);
-      
-      await proxyCacheWithCluster.processExpiredAlsKeys(mockCallback, batchSize);
-      
-      const key0 = RedisProxyCache.formatAlsCacheKey(alsReq0);
-      const key1 = RedisProxyCache.formatAlsCacheKey(alsReq1);
-      expect(mockCallback).toHaveBeenCalledTimes(2);
-      expect(mockCallback).toHaveBeenCalledWith(key0);
-      expect(mockCallback).toHaveBeenCalledWith(key1);
-
-      await Promise.all([
-        proxyCacheWithCluster.disconnect(),
-        redisClusterClient.quit(),
-      ]);
-    }, 6000);
   })
 
   test('should have healthCheck method', async () => {
