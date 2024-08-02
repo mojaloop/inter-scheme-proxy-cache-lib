@@ -108,6 +108,18 @@ export const shareDbInfoForAllConnectedInstances = async (proxyCache: IProxyCach
   return true;
 };
 
+export const processExpiredAlsKeysUseCase = async (proxyCache: IProxyCache) => {
+  const alsReq = fixtures.alsRequestDetailsDto();
+  const proxyIds = [`proxy1-${Date.now()}`, `proxy2-${Date.now()}`];
+  const isOk = await proxyCache.setSendToProxiesList(alsReq, proxyIds, 1);
+  expect(isOk).toBe(true);
+  const mockCallback = jest.fn();
+  await proxyCache.processExpiredAlsKeys(mockCallback, 10);
+  await new Promise((resolve) => setTimeout(resolve, 3000));
+  expect(mockCallback).toHaveBeenCalledTimes(1);
+  return true;
+};
+
 function randomIntSting(): string {
   return String(Date.now()).substring(9);
 }

@@ -22,9 +22,6 @@
  * Eugen Klymniuk <eugen.klymniuk@infitx.com>
  --------------
  **********/
- import { IoRedisMock } from '../../../unit/mocks';
- jest.mock('ioredis', () => IoRedisMock);
-
 import { env } from 'node:process';
 import { createProxyCache, IProxyCache, STORAGE_TYPES } from '#src/index';
 import { logger } from '#src/utils';
@@ -43,19 +40,13 @@ const redisClusterProxyConfig = fixtures.redisClusterProxyConfigDto({
 logger.info('redis proxyConfigs', { redisClusterProxyConfig, redisProxyConfig });
 
 describe('RedisProxyCache Integration Tests -->', () => {
-  const redisClient = new IoRedisMock(redisProxyConfig);
-
   const runUseCases = (proxyCache: IProxyCache, anotherProxyCache: IProxyCache) => {
-    beforeEach(() => {
-      redisClient.flushall();
-    })
-    
     beforeAll(async () => {
-      await Promise.all([proxyCache.connect(), anotherProxyCache.connect(), redisClient.connect()]);
+      await Promise.all([proxyCache.connect(), anotherProxyCache.connect()]);
     });
 
     afterAll(async () => {
-      await Promise.all([proxyCache.disconnect(), anotherProxyCache.disconnect(), redisClient.disconnect()]);
+      await Promise.all([proxyCache.disconnect(), anotherProxyCache.disconnect()]);
     });
 
     test('should perform proxyMapping use case', async () => {
@@ -68,6 +59,10 @@ describe('RedisProxyCache Integration Tests -->', () => {
 
     test('should save only the first alsRequest', async () => {
       await useCases.setSendToProxiesListOnceUseCase(proxyCache);
+    });
+
+    test.only('should process process expired ALS keys', async () => {
+      await useCases.processExpiredAlsKeysUseCase(proxyCache);
     });
 
     test('should have shared db info for all connected instances', async () => {
