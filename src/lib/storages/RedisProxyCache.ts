@@ -262,9 +262,7 @@ export class RedisProxyCache implements IProxyCache {
       }
       stream.resume()
     })
-    stream.on('end', () => { 
-      resolve(); 
-    })
+    stream.on('end', resolve)
   }
 
   private async processKey(key: string, callbackFn: ProcessKeyCallback): Promise<any> {
