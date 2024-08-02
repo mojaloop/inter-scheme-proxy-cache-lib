@@ -268,7 +268,7 @@ jobs:
           name: Execute integration tests
           command: |
             docker compose build
-            docker compose up -d
+            npm run dc:up
             # sleep 120 ## todo: find a better way to wait for redis-cluster creation
             ./docker/wait-for-containers.sh
             docker ps
