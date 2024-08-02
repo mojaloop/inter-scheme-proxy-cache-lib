@@ -63,7 +63,7 @@ describe('RedisProxyCache Integration Tests -->', () => {
 
     test('should process process expired ALS keys', async () => {
       await useCases.processExpiredAlsKeysUseCase(proxyCache);
-    }, 10_000);
+    }, 8_000);
 
     test('should have shared db info for all connected instances', async () => {
       await useCases.shareDbInfoForAllConnectedInstances(proxyCache, anotherProxyCache);

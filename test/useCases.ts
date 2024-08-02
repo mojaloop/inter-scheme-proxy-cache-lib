@@ -22,7 +22,7 @@
  * Eugen Klymniuk <eugen.klymniuk@infitx.com>
  --------------
  **********/
-
+import { setTimeout as sleep } from 'node:timers/promises';
 import { IProxyCache } from '#src/types';
 import * as fixtures from '#test/fixtures';
 
@@ -113,9 +113,11 @@ export const processExpiredAlsKeysUseCase = async (proxyCache: IProxyCache) => {
   const proxyIds = [`proxy1-${Date.now()}`, `proxy2-${Date.now()}`];
   const isOk = await proxyCache.setSendToProxiesList(alsReq, proxyIds, 1);
   expect(isOk).toBe(true);
-  const mockCallback = jest.fn();
+
+  await sleep(1_000);
+  const mockCallback = jest.fn().mockResolvedValue(true);
   await proxyCache.processExpiredAlsKeys(mockCallback, 10);
-  await new Promise((resolve) => setTimeout(resolve, 10_000));
+  
   expect(mockCallback).toHaveBeenCalled();
   return true;
 };
