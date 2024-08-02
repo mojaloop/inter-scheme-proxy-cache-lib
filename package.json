@@ -14,6 +14,9 @@
   "files": [
     "dist"
   ],
+  "config": {
+    "env_file": "--env-file .env"
+  },
   "scripts": {
     "test": "npm run test:unit",
     "test:unit": "jest --testMatch='**/unit/**/*.test.ts'",
@@ -26,8 +29,8 @@
     "lint:fix": "npm run lint -- --fix",
     "build": "tsup",
     "docs": "typedoc",
-    "dc:up": ". ./env.sh && docker compose up -d  &&  docker ps",
-    "dc:down": ". ./env.sh && docker compose down -v",
+    "dc:up": ". ./env.sh && docker compose $npm_package_config_env_file up -d  &&  docker ps",
+    "dc:down": ". ./env.sh && docker compose $npm_package_config_env_file down -v",
     "audit:resolve": "npx resolve-audit --production",
     "audit:check": "npx check-audit --production",
     "dep:check": "npx --no-install ncu -e 2",
