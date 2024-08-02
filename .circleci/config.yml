@@ -269,7 +269,7 @@ jobs:
           command: |
             docker compose build
             docker compose up -d
-            sleep 25 ## todo: find a better way to wait for redis-cluster creation
+            sleep 120 ## todo: find a better way to wait for redis-cluster creation
             npm run test:int
             docker compose down -v
 
