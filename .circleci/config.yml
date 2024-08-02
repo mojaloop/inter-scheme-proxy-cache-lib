@@ -269,11 +269,10 @@ jobs:
           command: |
             docker compose build
             npm run dc:up
-            # sleep 120 ## todo: find a better way to wait for redis-cluster creation
             ./docker/wait-for-containers.sh
             docker ps
             npm run test:int
-            docker compose down -v
+            npm run dc:udown
 
   vulnerability-check:
     executor: default-docker

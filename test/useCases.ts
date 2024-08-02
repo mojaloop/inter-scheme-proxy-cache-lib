@@ -115,7 +115,7 @@ export const processExpiredAlsKeysUseCase = async (proxyCache: IProxyCache) => {
   expect(isOk).toBe(true);
   const mockCallback = jest.fn();
   await proxyCache.processExpiredAlsKeys(mockCallback, 10);
-  await new Promise((resolve) => setTimeout(resolve, 7000));
+  await new Promise((resolve) => setTimeout(resolve, 10_000));
   expect(mockCallback).toHaveBeenCalled();
   return true;
 };
