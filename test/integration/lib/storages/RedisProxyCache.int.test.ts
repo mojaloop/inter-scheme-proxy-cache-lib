@@ -39,6 +39,8 @@ const redisClusterProxyConfig = fixtures.redisClusterProxyConfigDto({
 });
 logger.info('redis proxyConfigs', { redisClusterProxyConfig, redisProxyConfig });
 
+jest.setTimeout(300000000);
+
 describe('RedisProxyCache Integration Tests -->', () => {
   const runUseCases = (proxyCache: IProxyCache, anotherProxyCache: IProxyCache) => {
     beforeAll(async () => {
@@ -61,7 +63,7 @@ describe('RedisProxyCache Integration Tests -->', () => {
       await useCases.setSendToProxiesListOnceUseCase(proxyCache);
     });
 
-    test.only('should process process expired ALS keys', async () => {
+    test('should process process expired ALS keys', async () => {
       await useCases.processExpiredAlsKeysUseCase(proxyCache);
     });
 

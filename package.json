@@ -26,6 +26,8 @@
     "lint:fix": "npm run lint -- --fix",
     "build": "tsup",
     "docs": "typedoc",
+    "dc:up": ". ./env.sh && docker compose up -d  &&  docker ps",
+    "dc:down": ". ./env.sh && docker compose down -v",
     "audit:resolve": "npx resolve-audit --production",
     "audit:check": "npx check-audit --production",
     "dep:check": "npx --no-install ncu -e 2",
