@@ -39,8 +39,6 @@ const redisClusterProxyConfig = fixtures.redisClusterProxyConfigDto({
 });
 logger.info('redis proxyConfigs', { redisClusterProxyConfig, redisProxyConfig });
 
-jest.setTimeout(300000000);
-
 describe('RedisProxyCache Integration Tests -->', () => {
   const runUseCases = (proxyCache: IProxyCache, anotherProxyCache: IProxyCache) => {
     beforeAll(async () => {
