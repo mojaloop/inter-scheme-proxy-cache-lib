@@ -16,7 +16,13 @@ import { REDIS_KEYS_PREFIXES, REDIS_SUCCESS, REDIS_IS_CONNECTED_STATUSES } from 
 
 type RedisClient = Redis | Cluster;
 type RedisConfig = RedisProxyCacheConfig | RedisClusterProxyCacheConfig;
-type ProcessNodeOptions = { pattern: string, batchSize: number, callbackFn: ProcessKeyCallback, resolve: (...args: any[]) => void, reject: (reason?: any) => void }
+type ProcessNodeOptions = {
+  pattern: string;
+  batchSize: number;
+  callbackFn: ProcessKeyCallback;
+  resolve: (...args: any[]) => void;
+  reject: (reason?: any) => void;
+};
 
 const isClusterConfig = (config: RedisConfig): config is RedisClusterProxyCacheConfig => 'cluster' in config;
 

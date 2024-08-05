@@ -224,7 +224,7 @@ describe('RedisProxyCache Tests -->', () => {
       expect(rawExistsResult1).toBe(0);
 
       await redisClient.flushall();
-    }, 1000000000)
+    })
   })
 
   test('should have healthCheck method', async () => {
