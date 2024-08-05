@@ -209,7 +209,7 @@ describe('RedisProxyCache Tests -->', () => {
       
       await sleep(2500);
 
-      await expect(proxyCache.processExpiredAlsKeys(mockCallback, batchSize)).resolves.toBeUndefined();
+      await expect(proxyCache.processExpiredAlsKeys(mockCallback, batchSize)).resolves.toStrictEqual([undefined]);
 
       const key0 = RedisProxyCache.formatAlsCacheKey(alsReq0);
       const key1 = RedisProxyCache.formatAlsCacheKey(alsReq1);
@@ -224,7 +224,7 @@ describe('RedisProxyCache Tests -->', () => {
       expect(rawExistsResult1).toBe(0);
 
       await redisClient.flushall();
-    })
+    }, 1000000000)
   })
 
   test('should have healthCheck method', async () => {

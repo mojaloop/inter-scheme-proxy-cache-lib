@@ -138,9 +138,17 @@ export class RedisProxyCache implements IProxyCache {
   async processExpiredAlsKeys(callbackFn: ProcessKeyCallback, batchSize: number): Promise<unknown> {
     const pattern = RedisProxyCache.formatAlsCacheExpiryKey({ sourceId: '*', type: '*', partyId: '*' })
 
-    return this.isCluster
-      ? this.processExpiredAlsKeysForCluster(pattern, callbackFn, batchSize)
-      : this.processExpiredAlsKeysForSingle(pattern, callbackFn, batchSize);
+    const redisNodes = this.isCluster 
+      ? (this.redisClient as Cluster).nodes('master')
+      : [this.redisClient as Redis]
+    
+    return Promise.all(
+      redisNodes.map(async (node) => {
+        return new Promise((resolve, reject) => {
+          this.processNode(node, { pattern, batchSize, callbackFn, resolve, reject })
+        })
+      })
+    )
   }
 
   async connect(): Promise<boolean> {
@@ -230,22 +238,6 @@ export class RedisProxyCache implements IProxyCache {
       this.log.error('pipeline execution failed', error);
       return [];
     }
-  }
-
-  private async processExpiredAlsKeysForCluster(pattern: string, callbackFn: ProcessKeyCallback, batchSize: number): Promise<any[]> {
-    return Promise.all(
-      (this.redisClient as Cluster).nodes('master').map(async (node) => {
-        return new Promise((resolve, reject) => {
-          this.processNode(node, { pattern, batchSize, callbackFn, resolve, reject })
-        })
-      })
-    )
-  }
-
-  private async processExpiredAlsKeysForSingle(pattern: string, callbackFn: ProcessKeyCallback, batchSize: number): Promise<any[]> {
-    return new Promise((resolve, reject) => {
-      this.processNode(this.redisClient as Redis, { pattern, batchSize, callbackFn, resolve, reject })
-    })
   }
 
   private async processNode(node: Redis, options: ProcessNodeOptions): Promise<void> {
