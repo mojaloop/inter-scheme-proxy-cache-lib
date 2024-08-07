@@ -275,7 +275,7 @@ export class RedisProxyCache implements IProxyCache {
     
     return Promise.all([
       callbackFn(actualKey).catch((err) => {
-        this.log.error(`processKey callback error ${key}`, err)
+        this.log.warn(`processKey callback error ${key}`, err)
         return Promise.resolve()
       }),
       deleteKeys().catch((err) => {
