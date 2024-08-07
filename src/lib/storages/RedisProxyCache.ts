@@ -269,26 +269,17 @@ export class RedisProxyCache implements IProxyCache {
 
     if (Number(expiresAt) >= Date.now()) return
     
-    try {
-      await callbackFn(actualKey)
-      if (this.isCluster) {
-        return Promise.all([
-          this.redisClient.del(actualKey),
-          this.redisClient.del(key)
-        ])
-      }
-      return this.executePipeline([
-        ['del', actualKey],
-        ['del', key]
-      ])
-    } catch (err: unknown) {
-      /**
-       * We don't want to throw an error here, as it will stop the whole process
-       * and we want to continue with the next keys
-       * We, however, need to decide on how/when to finally give up on a key and remove it from the cache
-       */
-      this.log.error(`processKey error ${key}`, err)
-    }
+    const deleteKeys = this.isCluster
+      ? () => Promise.all([this.redisClient.del(actualKey), this.redisClient.del(key)])
+      : () => this.executePipeline([['del', actualKey], ['del', key]]);
+    
+    return Promise.all([
+      callbackFn(actualKey).catch((err) => this.log.error(`processKey callback error ${key}`, err)),
+      deleteKeys().catch((err) => {
+        this.log.error(`processKey key deletion error ${key}`, err)
+        throw err;
+      })
+    ])
   }
 
   static formatAlsCacheKey(alsReq: AlsRequestDetails): string {
