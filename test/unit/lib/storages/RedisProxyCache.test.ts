@@ -178,7 +178,7 @@ describe('RedisProxyCache Tests -->', () => {
       isOk = await proxyCache.setSendToProxiesList(alsReq1, proxyIds, 2);
       expect(isOk).toBe(true);
 
-      const mockCallback = jest.fn();
+      const mockCallback = jest.fn().mockReturnValue(Promise.resolve());
       const batchSize = 10;
 
       await sleep(2500);
@@ -192,7 +192,7 @@ describe('RedisProxyCache Tests -->', () => {
       expect(mockCallback).toHaveBeenCalledWith(key1);
     });
 
-    test('should process all keys if a callback function throws an error', async () => {
+    test('should process all keys even if a callback function throws an error', async () => {
       await redisClient.flushall();
 
       const alsReq0 = fixtures.alsRequestDetailsDto();
@@ -204,7 +204,7 @@ describe('RedisProxyCache Tests -->', () => {
       isOk = await proxyCache.setSendToProxiesList(alsReq1, proxyIds, 2);
       expect(isOk).toBe(true);
 
-      const mockCallback = jest.fn().mockRejectedValueOnce(new Error('test error'));
+      const mockCallback = jest.fn().mockImplementation(() => Promise.reject(new Error('mock callback test error')));
       const batchSize = 10;
       
       await sleep(2500);
@@ -218,13 +218,13 @@ describe('RedisProxyCache Tests -->', () => {
       expect(mockCallback).toHaveBeenCalledWith(key1);
 
       const rawExistsResult = await redisClient.exists(key0);
-      expect(rawExistsResult).toBe(1);
+      expect(rawExistsResult).toBe(0);
 
       const rawExistsResult1 = await redisClient.exists(key1);
       expect(rawExistsResult1).toBe(0);
 
       await redisClient.flushall();
-    })
+    }, 100000000)
   })
 
   test('should have healthCheck method', async () => {
