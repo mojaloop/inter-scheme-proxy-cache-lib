@@ -21,7 +21,7 @@ type ProcessNodeOptions = {
   batchSize: number;
   callbackFn: ProcessKeyCallback;
   resolve: (...args: any[]) => void;
-  reject: (reason?: any) => void;
+  reject: (reason?: Error) => void;
 };
 
 const isClusterConfig = (config: RedisConfig): config is RedisClusterProxyCacheConfig => 'cluster' in config;
@@ -256,7 +256,7 @@ export class RedisProxyCache implements IProxyCache {
         await Promise.all(keys.map((key: string) => this.processKey(key, callbackFn)))
       } catch (err: unknown) {
         stream.destroy(err as Error)
-        reject(err)
+        reject(err as Error)
       }
       stream.resume()
     })
@@ -287,7 +287,7 @@ export class RedisProxyCache implements IProxyCache {
        * and we want to continue with the next keys
        * We, however, need to decide on how/when to finally give up on a key and remove it from the cache
        */
-      this.log.error('processKey error', err)
+      this.log.error(`processKey error ${key}`, err)
     }
   }
 

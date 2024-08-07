@@ -109,7 +109,7 @@ describe('RedisProxyCache Tests -->', () => {
       let rawExistsResult = await redisClient.exists(key);
       expect(rawExistsResult).toBe(1);
 
-      const expiryKey = `${key}:expiresAt`;
+      const expiryKey = RedisProxyCache.formatAlsCacheExpiryKey(alsReq);
       const rawTtlExistsResult = await redisClient.exists(expiryKey);
       expect(rawTtlExistsResult).toBe(1);
       
