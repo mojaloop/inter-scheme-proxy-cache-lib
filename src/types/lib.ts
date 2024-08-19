@@ -1,3 +1,4 @@
+import type { RedisOptions as IORedisOptions, ClusterOptions as IORedisClusterOptions, ClusterNode } from 'ioredis';
 import { storageTypeValues } from '../constants';
 import { LogLevel, Prettify } from './utils';
 
@@ -41,24 +42,19 @@ export type ProxyCacheFactory = (type: StorageType, proxyConfig: ProxyCacheConfi
 
 export type ProxyCacheConfig = RedisProxyCacheConfig | RedisClusterProxyCacheConfig | MySqlProxyCacheConfig;
 
-export type RedisProxyCacheConfig = Prettify<BasicConnectionConfig & RedisOptions>;
+export type RedisProxyCacheConfig = Prettify<RedisOptions>;
 
-export type RedisClusterProxyCacheConfig = Prettify<RedisClusterConnectionConfig & RedisClusterOptions>;
+export type RedisClusterProxyCacheConfig = Prettify<RedisClusterOptions>;
 
-export type RedisClusterConnectionConfig = {
-  cluster: BasicConnectionConfig[];
-};
-
-export type RedisOptions = {
-  username?: string;
-  password?: string;
+type ProxyOptions = {
   /** @defaultValue `true` */
   lazyConnect?: boolean;
-  db?: number; // Defaults to 0
-  // define all needed options here
-};
+  /** Map of DFSP:Proxy to set upon connecting */
+  mapping?: Record<string, string>;
+}
 
-export type RedisClusterOptions = RedisOptions;
+export type RedisOptions = IORedisOptions & ProxyOptions;
+export type RedisClusterOptions = IORedisClusterOptions & ProxyOptions & { cluster: ClusterNode[] };
 
 /** **(!)**  _MySqlProxyCacheConfig_ is not supported yet */
 // prettier-ignore

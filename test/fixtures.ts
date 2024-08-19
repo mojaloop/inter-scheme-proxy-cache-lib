@@ -5,18 +5,22 @@ export const redisProxyConfigDto = ({
   host = '127.0.0.1',
   port = 26379,
   lazyConnect = true,
+  mapping = { 'dfsp-1': 'proxy-1' },
 } = {}): RedisProxyCacheConfig => ({
   host,
   port,
   lazyConnect,
+  mapping,
 });
 
 export const redisClusterProxyConfigDto = ({
   cluster = [{ host: '127.0.0.1', port: 56379 }],
   lazyConnect = true,
+  mapping = { 'dfsp-1': 'proxy-1' },
 } = {}): RedisClusterProxyCacheConfig => ({
   cluster,
   lazyConnect,
+  mapping,
 });
 
 export const alsRequestDetailsDto = ({
