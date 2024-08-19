@@ -28,10 +28,10 @@ jest.mock('ioredis', () => IoRedisMock);
 
 import { setTimeout as sleep } from 'node:timers/promises';
 import { createProxyCache, IProxyCache, STORAGE_TYPES } from '../../../../src/index';
-import { RedisProxyCache } from '../../../../src/lib/storages';
-import { ValidationError } from '../../../../src/lib/errors';
+import { RedisProxyCache } from '#src/lib/storages';
+import { ValidationError } from '#src/lib/errors';
 
-import * as useCases from '../../../useCases';
+import * as useCases from '#test/useCases';
 import * as fixtures from '../../../fixtures';
 
 const redisProxyConfig = fixtures.redisProxyConfigDto();

@@ -10,7 +10,7 @@ import {
   IsLastFailure,
   AlsRequestDetails,
   ILogger,
-  ProcessKeyCallback,
+  ProcessExpiryKeyCallback,
 } from '../../types';
 import { REDIS_KEYS_PREFIXES, REDIS_SUCCESS, REDIS_IS_CONNECTED_STATUSES } from './constants';
 
@@ -19,7 +19,7 @@ type RedisConfig = RedisProxyCacheConfig | RedisClusterProxyCacheConfig;
 type ProcessNodeOptions = {
   pattern: string;
   batchSize: number;
-  callbackFn: ProcessKeyCallback;
+  callbackFn: ProcessExpiryKeyCallback;
   resolve: (...args: any[]) => void;
   reject: (reason?: Error) => void;
 };
@@ -141,7 +141,7 @@ export class RedisProxyCache implements IProxyCache {
     return isLast;
   }
 
-  async processExpiredAlsKeys(callbackFn: ProcessKeyCallback, batchSize: number): Promise<unknown> {
+  async processExpiredAlsKeys(callbackFn: ProcessExpiryKeyCallback, batchSize: number): Promise<unknown> {
     const pattern = RedisProxyCache.formatAlsCacheExpiryKey({ sourceId: '*', type: '*', partyId: '*' })
 
     const redisNodes = this.isCluster 
@@ -253,7 +253,7 @@ export class RedisProxyCache implements IProxyCache {
     stream.on('data', async (keys) => {
       stream.pause()
       try {
-        await Promise.all(keys.map((key: string) => this.processKey(key, callbackFn)))
+        await Promise.all(keys.map((key: string) => this.processExpiryKey(key, callbackFn)))
       } catch (err: unknown) {
         stream.destroy(err as Error)
         reject(err as Error)
@@ -263,23 +263,23 @@ export class RedisProxyCache implements IProxyCache {
     stream.on('end', resolve)
   }
 
-  private async processKey(key: string, callbackFn: ProcessKeyCallback): Promise<any> {
-    const actualKey = key.replace(':expiresAt', '')
-    const expiresAt = await this.redisClient.get(key)
+  private async processExpiryKey(expiryKey: string, callbackFn: ProcessExpiryKeyCallback): Promise<any> {
+    const actualKey = expiryKey.replace(':expiresAt', '')
+    const expiresAt = await this.redisClient.get(expiryKey)
 
     if (Number(expiresAt) >= Date.now()) return
     
     const deleteKeys = this.isCluster
-      ? () => Promise.all([this.redisClient.del(actualKey), this.redisClient.del(key)])
-      : () => this.executePipeline([['del', actualKey], ['del', key]]);
+      ? () => Promise.all([this.redisClient.del(actualKey), this.redisClient.del(expiryKey)])
+      : () => this.executePipeline([['del', actualKey], ['del', expiryKey]]);
     
     return Promise.all([
       callbackFn(actualKey).catch((err) => {
-        this.log.warn(`processKey callback error ${key}`, err)
+        this.log.warn(`processExpiryKey callback error ${expiryKey}`, err)
         return Promise.resolve()
       }),
       deleteKeys().catch((err) => {
-        this.log.error(`processKey key deletion error ${key}`, err)
+        this.log.error(`processExpiryKey key deletion error ${expiryKey}`, err)
         return Promise.reject(err);
       })
     ])

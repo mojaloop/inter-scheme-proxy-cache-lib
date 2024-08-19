@@ -3,7 +3,7 @@ import { LogLevel, Prettify } from './utils';
 
 export type StorageType = (typeof storageTypeValues)[number];
 
-export type ProcessKeyCallback = (key: string) => Promise<void>;
+export type ProcessExpiryKeyCallback = (key: string) => Promise<void>;
 export interface IProxyCache {
   addDfspIdToProxyMapping: (dfspId: string, proxyId: string) => Promise<boolean>;
   lookupProxyByDfspId: (dfspId: string) => Promise<string | null>;
@@ -21,7 +21,7 @@ export interface IProxyCache {
    */
   receivedErrorResponse: (alsRequest: AlsRequestDetails, proxyId: string) => Promise<IsLastFailure>;
 
-  processExpiredAlsKeys: (callbackFn: ProcessKeyCallback, batchSize: number) => Promise<unknown>;
+  processExpiredAlsKeys: (callbackFn: ProcessExpiryKeyCallback, batchSize: number) => Promise<unknown>;
 
   connect: () => Promise<boolean>;
   disconnect: () => Promise<boolean>;
