@@ -98,6 +98,9 @@ export class RedisProxyCache implements IProxyCache {
       return true;
     }
     await this.redisClient.connect();
+    for (const [dfspId, proxyId] of Object.entries(this.proxyConfig?.mapping || {})) {
+      await this.addDfspIdToProxyMapping(dfspId, proxyId);
+    }
     const { status } = this.redisClient;
     this.log.verbose('proxyCache is connected', { status });
     return true;
@@ -130,11 +133,16 @@ export class RedisProxyCache implements IProxyCache {
   }
 
   private createRedisClient() {
-    this.proxyConfig.lazyConnect ??= true;
-    // prettier-ignore
-    const redisClient = isClusterConfig(this.proxyConfig)
-      ? new Cluster(this.proxyConfig.cluster, this.proxyConfig)
-      : new Redis(this.proxyConfig);
+    let redisClient;
+    if (isClusterConfig(this.proxyConfig)) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { cluster, mapping, ...redisOptions } = this.proxyConfig;
+      redisClient = new Cluster(cluster, { lazyConnect: true, ...redisOptions });
+    } else {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { mapping, ...redisOptions } = this.proxyConfig;
+      redisClient = new Redis({ lazyConnect: true, ...redisOptions });
+    }
 
     this.addEventListeners(redisClient);
     return redisClient;
@@ -152,7 +160,7 @@ export class RedisProxyCache implements IProxyCache {
       .on('ready', () => { log.verbose('redis connection is ready'); });
   }
 
-  private async executePipeline(commands: [string, ...any[]][]): Promise<unknown[]> {
+  private async executePipeline(commands: [string, ...unknown[]][]): Promise<unknown[]> {
     const pipeline = this.redisClient.pipeline();
 
     commands.forEach(([command, ...args]) => {

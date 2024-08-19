@@ -35,6 +35,8 @@ import * as fixtures from '#test/fixtures';
 export const proxyMappingUseCase = async (proxyCache: IProxyCache) => {
   expect(proxyCache.isConnected).toBe(true);
 
+  expect(await proxyCache.lookupProxyByDfspId('dfsp-1')).toBe('proxy-1');
+
   const dfspId = `dfsp-${randomIntSting()}`;
   let noProxyId = await proxyCache.lookupProxyByDfspId(dfspId);
   expect(noProxyId).toBeNull();

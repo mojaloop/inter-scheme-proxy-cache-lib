@@ -32,7 +32,6 @@ import {
   RedisProxyCacheConfig,
   RedisOptions,
   RedisClusterProxyCacheConfig,
-  RedisClusterOptions,
   BasicConnectionConfig,
   AlsRequestDetails,
 } from './types';
@@ -50,18 +49,19 @@ const BasicConnectionSchema: JSONSchemaType<BasicConnectionConfig> = {
   additionalProperties: false,
 };
 
-const RedisOptionsSchema: JSONSchemaType<RedisOptions> = {
+const RedisOptionsSchema: Partial<JSONSchemaType<RedisOptions>> = {
   type: 'object',
   properties: {
     username: { type: 'string', nullable: true },
     password: { type: 'string', nullable: true },
     lazyConnect: { type: 'boolean', nullable: true },
     db: { type: 'number', nullable: true },
+    mapping: { type: 'object', nullable: true },
   },
   additionalProperties: true,
 };
 
-const RedisProxyCacheConfigSchema: JSONSchemaType<RedisProxyCacheConfig> = {
+const RedisProxyCacheConfigSchema: Partial<JSONSchemaType<RedisProxyCacheConfig>> = {
   type: 'object',
   properties: {
     ...(BasicConnectionSchema.properties as PropertiesSchema<BasicConnectionConfig>),
@@ -85,7 +85,7 @@ const RedisClusterProxyCacheConfigSchema: JSONSchemaType<RedisClusterProxyCacheC
   type: 'object',
   properties: {
     cluster: { type: 'array', items: BasicConnectionSchema, minItems: 1 },
-    ...(RedisOptionsSchema.properties as PropertiesSchema<RedisClusterOptions>),
+    ...RedisOptionsSchema.properties,
   },
   required: ['cluster'],
   additionalProperties: true,
