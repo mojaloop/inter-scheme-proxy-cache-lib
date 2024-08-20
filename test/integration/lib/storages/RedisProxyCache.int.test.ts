@@ -22,7 +22,6 @@
  * Eugen Klymniuk <eugen.klymniuk@infitx.com>
  --------------
  **********/
-
 import { env } from 'node:process';
 import { createProxyCache, IProxyCache, STORAGE_TYPES } from '#src/index';
 import { logger } from '#src/utils';
@@ -61,6 +60,10 @@ describe('RedisProxyCache Integration Tests -->', () => {
     test('should save only the first alsRequest', async () => {
       await useCases.setSendToProxiesListOnceUseCase(proxyCache);
     });
+
+    test('should process process expired ALS keys', async () => {
+      await useCases.processExpiredAlsKeysUseCase(proxyCache);
+    }, 8_000);
 
     test('should have shared db info for all connected instances', async () => {
       await useCases.shareDbInfoForAllConnectedInstances(proxyCache, anotherProxyCache);

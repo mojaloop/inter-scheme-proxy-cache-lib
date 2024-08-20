@@ -98,7 +98,7 @@ describe('RedisClusterProxyCache Tests -->', () => {
       expect(isOk).toBe(true);
     });
 
-    test('should set proxiesList with proper TTL', async () => {
+    test('should set proxiesList with its expiry key', async () => {
       const alsReq = fixtures.alsRequestDetailsDto();
       const proxyIds = ['proxy1', 'proxy2'];
       const ttlSec = 1;
@@ -106,13 +106,23 @@ describe('RedisClusterProxyCache Tests -->', () => {
       expect(isOk).toBe(true);
 
       const key = RedisProxyCache.formatAlsCacheKey(alsReq);
-      let rawExistsResult = await redisClient.exists(key);
+      const expiryKey = RedisProxyCache.formatAlsCacheExpiryKey(alsReq);
+      let [rawExistsResult, rawExpiryKeyExistsResult] = await Promise.all([
+        await redisClient.exists(key),
+        await redisClient.exists(expiryKey)
+      ]);
       expect(rawExistsResult).toBe(1);
+      expect(rawExpiryKeyExistsResult).toBe(1);
 
       await sleep(ttlSec * 1000);
 
-      rawExistsResult = await redisClient.exists(key);
-      expect(rawExistsResult).toBe(0);
+      // assert that the keys were not removed by Redis
+      [rawExistsResult, rawExpiryKeyExistsResult] = await Promise.all([
+        await redisClient.exists(key),
+        await redisClient.exists(expiryKey)
+      ]);
+      expect(rawExistsResult).toBe(1);
+      expect(rawExpiryKeyExistsResult).toBe(1);
     });
 
     test('should throw validation error if alsRequest is invalid', async () => {

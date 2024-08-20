@@ -3,6 +3,7 @@ import { LogLevel, Prettify } from './utils';
 
 export type StorageType = (typeof storageTypeValues)[number];
 
+export type ProcessExpiryKeyCallback = (key: string) => Promise<void>;
 export interface IProxyCache {
   addDfspIdToProxyMapping: (dfspId: string, proxyId: string) => Promise<boolean>;
   lookupProxyByDfspId: (dfspId: string) => Promise<string | null>;
@@ -19,6 +20,8 @@ export interface IProxyCache {
    *  _receivedErrorResponse_ returns `true` if the last failed response is detected. In that case Parties error callback should be sent.
    */
   receivedErrorResponse: (alsRequest: AlsRequestDetails, proxyId: string) => Promise<IsLastFailure>;
+
+  processExpiredAlsKeys: (callbackFn: ProcessExpiryKeyCallback, batchSize: number) => Promise<unknown>;
 
   connect: () => Promise<boolean>;
   disconnect: () => Promise<boolean>;
@@ -57,7 +60,7 @@ export type RedisOptions = {
   db?: number; // Defaults to 0
   // define all needed options here
 };
-
+ 
 export type RedisClusterOptions = RedisOptions;
 
 /** **(!)**  _MySqlProxyCacheConfig_ is not supported yet */

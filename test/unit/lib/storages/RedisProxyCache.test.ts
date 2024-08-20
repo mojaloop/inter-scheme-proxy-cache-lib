@@ -27,12 +27,12 @@ import { IoRedisMock } from '../../mocks';
 jest.mock('ioredis', () => IoRedisMock);
 
 import { setTimeout as sleep } from 'node:timers/promises';
-import { createProxyCache, IProxyCache, STORAGE_TYPES } from '#src/index';
+import { createProxyCache, IProxyCache, STORAGE_TYPES } from '../../../../src/index';
 import { RedisProxyCache } from '#src/lib/storages';
 import { ValidationError } from '#src/lib/errors';
 
 import * as useCases from '#test/useCases';
-import * as fixtures from '#test/fixtures';
+import * as fixtures from '../../../fixtures';
 
 const redisProxyConfig = fixtures.redisProxyConfigDto();
 
@@ -109,10 +109,15 @@ describe('RedisProxyCache Tests -->', () => {
       let rawExistsResult = await redisClient.exists(key);
       expect(rawExistsResult).toBe(1);
 
+      const expiryKey = RedisProxyCache.formatAlsCacheExpiryKey(alsReq);
+      const rawTtlExistsResult = await redisClient.exists(expiryKey);
+      expect(rawTtlExistsResult).toBe(1);
+      
       await sleep(ttlSec * 1000);
-
+      
+      // ensure that key is not removed by Redis
       rawExistsResult = await redisClient.exists(key);
-      expect(rawExistsResult).toBe(0);
+      expect(rawExistsResult).toBe(1);
     });
 
     test('should throw validation error if alsRequest is invalid', async () => {
@@ -159,6 +164,68 @@ describe('RedisProxyCache Tests -->', () => {
         .rejects.toThrow(ValidationError);
     });
   });
+
+  describe('processExpiredAlsKeys -->', () => {
+    test('should process expired keys', async () => {
+      await redisClient.flushall();
+
+      const alsReq0 = fixtures.alsRequestDetailsDto();
+      const proxyIds = ['proxy1', 'proxy2'];
+      let isOk = await proxyCache.setSendToProxiesList(alsReq0, proxyIds, 2);
+      expect(isOk).toBe(true);
+
+      const alsReq1 = fixtures.alsRequestDetailsDto();
+      isOk = await proxyCache.setSendToProxiesList(alsReq1, proxyIds, 2);
+      expect(isOk).toBe(true);
+
+      const mockCallback = jest.fn().mockReturnValue(Promise.resolve());
+      const batchSize = 10;
+
+      await sleep(2500);
+      
+      await proxyCache.processExpiredAlsKeys(mockCallback, batchSize);
+      
+      const key0 = RedisProxyCache.formatAlsCacheKey(alsReq0);
+      const key1 = RedisProxyCache.formatAlsCacheKey(alsReq1);
+      expect(mockCallback).toHaveBeenCalledTimes(2);
+      expect(mockCallback).toHaveBeenCalledWith(key0);
+      expect(mockCallback).toHaveBeenCalledWith(key1);
+    });
+
+    test('should process all keys even if a callback function throws an error', async () => {
+      await redisClient.flushall();
+
+      const alsReq0 = fixtures.alsRequestDetailsDto();
+      const proxyIds = ['proxy1', 'proxy2'];
+      let isOk = await proxyCache.setSendToProxiesList(alsReq0, proxyIds, 2);
+      expect(isOk).toBe(true);
+
+      const alsReq1 = fixtures.alsRequestDetailsDto();
+      isOk = await proxyCache.setSendToProxiesList(alsReq1, proxyIds, 2);
+      expect(isOk).toBe(true);
+
+      const mockCallback = jest.fn().mockImplementation(() => Promise.reject(new Error('mock callback test error')));
+      const batchSize = 10;
+      
+      await sleep(2500);
+
+      await expect(proxyCache.processExpiredAlsKeys(mockCallback, batchSize)).resolves.toStrictEqual([undefined]);
+
+      const key0 = RedisProxyCache.formatAlsCacheKey(alsReq0);
+      const key1 = RedisProxyCache.formatAlsCacheKey(alsReq1);
+      expect(mockCallback).toHaveBeenCalledTimes(2);
+      expect(mockCallback).toHaveBeenCalledWith(key0);
+      expect(mockCallback).toHaveBeenCalledWith(key1);
+
+      const rawExistsResult = await redisClient.exists(key0);
+      expect(rawExistsResult).toBe(0);
+
+      const rawExistsResult1 = await redisClient.exists(key1);
+      expect(rawExistsResult1).toBe(0);
+
+      await redisClient.flushall();
+    }, 100000000)
+  })
 
   test('should have healthCheck method', async () => {
     const isOk = await proxyCache.healthCheck();
