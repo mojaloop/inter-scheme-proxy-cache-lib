@@ -2,6 +2,57 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.4.0](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/compare/v2.3.0-snapshot.8...v2.4.0) (2024-08-23)
+
+
+### Features
+
+* add simultaneous key deletion ([e8b1b1a](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/e8b1b1aa976d0fcfb5b96805feb98df98150d7c4))
+* **csi-403:** add expiry key for als proxies parties lookup ([f4ad210](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/f4ad21089a8eb7f259fa9c8cebe04192af3329bf))
+* update logging ([eb8f124](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/eb8f1242dfc5addabd0f8077f3fb04b47eb8ef30))
+
+
+### Bug Fixes
+
+* minor fix ([b78c317](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/b78c3171a13083d39b86c178146a4e41d1dd31c3))
+
+
+### Test
+
+* add integration test for ALS key expiry ([7e7a323](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/7e7a323df496b517355d5af7cd49e0255ea508b6))
+* fix test ([07a1482](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/07a1482e287236062b95cdc337839792e71e287a))
+* fix test ([e769b2f](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/e769b2fc5c16ac6ef5522473b0506a678bc26cf8))
+* update packaages paths ([66f06da](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/66f06dae8ec96b1d46be57e03ee116a11fbc64dc))
+* update test ([700dfe4](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/700dfe461ef819857bf4184ffc8b77bd2e9111ab))
+* update test ([98e5bcb](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/98e5bcb356bdf19fd7766661c984424a02027797))
+* update test ([39c771a](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/39c771a96e8ab227fd59f1b81920439e52630236))
+* update test ([8a828c3](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/8a828c37280f1e0972f634080fda3a68b443dbf8))
+* update tests ([f540fb5](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/f540fb568f9ce6edec851067eef24809fe5469a0))
+* update tests ([fc8ab00](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/fc8ab00f1d51b8587ee6f8b46e2d0393f00e9866))
+* update tests ([0cb0338](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/0cb0338fa15158a6e26ef17bd8f6f185cb41316f))
+* update tests ([9166f9f](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/9166f9f95d697f6ffdb0cabff7d73db7953c2ddd))
+* update tests ([99f42fc](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/99f42fc77a82963424d9cb1bb548d89a4bc9e3c4))
+* update unit tests ([e77bb4f](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/e77bb4fee0779c8475309857bdcbb324fe03a981))
+
+
+### Refactor
+
+* nits ([0aaff2a](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/0aaff2ad52fba6d90d81ba06a3df415e701c77cc))
+* refactor and update test ([a416f5d](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/a416f5d95dce012f9d994eac0e00ee9270e273ef))
+* rename processKey ([5b9b3a3](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/5b9b3a3ee1321bd3b2eb14b0f9c7bd0ab1541977))
+* update type ([793aaec](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/793aaec2fd4ebceebb0699885b5ee0a821a3ff8b))
+
+
+### Chore
+
+* minor changes ([4c15d38](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/4c15d385142a1901ef988862ffbf959dd4fbc39c))
+* update dependencies ([7a5f12f](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/7a5f12fd3bb4225fe8df3810e80db2017eb42847))
+* update dependencies ([9cd6c97](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/9cd6c974b542bfc75adac499d4b267783ea0638a))
+* update dependencies ([#11](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/issues/11)) ([c6e52ac](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/c6e52ac0829287e1b53d297fba008546299e4760))
+* update deps ([5d53e94](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/5d53e948fb23507a46a25f1a077808bfd96bd3bd))
+* update deps ([4d4e222](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/4d4e222f1603e32a1bdeb6a2feb69d2dcb395b63))
+* update package version ([4d9e03e](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/4d9e03e336d9d6db069f9b4c57384aeace071986))
+
 ## [2.2.0](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/compare/v2.2.0-snapshot.0...v2.2.0) (2024-07-29)
 
 
