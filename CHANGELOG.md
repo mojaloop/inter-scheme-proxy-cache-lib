@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.3.1](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/compare/v2.3.0...v2.3.1) (2024-12-11)
+
+
+### Chore
+
+* fix changelog ([f712a2b](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/f712a2b9d667435e438a2fa60f542afd96664a61))
+* updated deps/docs ([0e9ef7d](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/0e9ef7d7c87bea8e999289ece0389429db15ec37))
+
 ## [2.3.0](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/compare/v2.3.0-snapshot.8...v2.3.0) (2024-08-23)
 
 
