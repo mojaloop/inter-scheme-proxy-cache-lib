@@ -1,8 +1,3 @@
 ## Add a comment indicating the reason for each rejected dependency upgrade added to this list, and what should be done to resolve it (i.e. handle it through a story, etc).
 reject: [
-  "eslint", # typescript-eslint v7 only supports eslint v8
-  "@typescript-eslint/eslint-plugin", # version 8+ resulted in lint error (@typescript-eslint/no-unused-vars) with StorageTypes type and cannot be ignored
-  "@typescript-eslint/parser", # keep in sync with @typescript-eslint/eslint-plugin to prevent peer resolution errors
-  "typedoc", # typedoc v0.27... conflicts with typedoc-theme-hierarchy
-  "typescript" # typescript v5.7... conflicts with typedoc@v0.26...
 ]
