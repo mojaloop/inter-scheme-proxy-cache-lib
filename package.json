@@ -42,7 +42,7 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@mojaloop/central-services-logger": "11.5.2",
+    "@mojaloop/central-services-logger": "11.5.3",
     "ajv": "^8.17.1",
     "convict": "^6.2.4",
     "fast-safe-stringify": "^2.1.1",
