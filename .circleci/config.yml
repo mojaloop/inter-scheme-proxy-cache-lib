@@ -17,13 +17,13 @@ orbs:
 # YAML defaults templates
 ##
 defaults_docker_Dependencies: &defaults_docker_Dependencies |
-    apk --no-cache add git
-    apk --no-cache add ca-certificates
-    apk --no-cache add curl
-    apk --no-cache add openssh-client
-    apk --no-cache add -t build-dependencies make gcc g++ python3 libtool autoconf automake jq
-    apk --no-cache add bash bash-doc bash-completion
-    npm install -g node-gyp
+  apk --no-cache add git
+  apk --no-cache add ca-certificates
+  apk --no-cache add curl
+  apk --no-cache add openssh-client
+  apk --no-cache add -t build-dependencies make gcc g++ python3 libtool autoconf automake jq
+  apk --no-cache add bash bash-doc bash-completion
+  npm install -g node-gyp
 
 defaults_machine_Dependencies: &defaults_machine_Dependencies |
   ## Add Package Repos
@@ -36,7 +36,7 @@ defaults_machine_Dependencies: &defaults_machine_Dependencies |
   sudo ln -s /usr/lib/x86_64-linux-musl/libc.so /lib/libc.musl-x86_64.so.1
 
 defaults_awsCliDependencies: &defaults_awsCliDependencies |
-    apk --no-cache add aws-cli
+  apk --no-cache add aws-cli
 
 defaults_license_scanner: &defaults_license_scanner
   name: Install and set up license-scanner
@@ -51,7 +51,7 @@ defaults_npm_auth: &defaults_npm_auth
 
 defaults_npm_publish_release: &defaults_npm_publish_release
   name: Publish NPM $RELEASE_TAG artifact
-  command: |   
+  command: |
     source $BASH_ENV
     npm ci
     echo "Publishing tag $RELEASE_TAG"
@@ -326,7 +326,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-          - dependency-cache-{{ .Environment.CIRCLE_SHA1 }}
+            - dependency-cache-{{ .Environment.CIRCLE_SHA1 }}
       - run:
           <<: *defaults_configure_git
       - run:
