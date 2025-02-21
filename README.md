@@ -40,7 +40,6 @@ Check [_IProxyCache_](https://mojaloop.github.io/inter-scheme-proxy-cache-lib/in
 Comprehensive and interactive API documentation, based on TypeScript source code of the package,
 could be found [**here**](https://mojaloop.github.io/inter-scheme-proxy-cache-lib)
 
-
 ### Environment Variables
 | Env Variable Name           | Default Value | Description                        | 
 |-----------------------------|---------------|------------------------------------|
