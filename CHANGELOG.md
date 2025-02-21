@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.3.2](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/compare/v2.3.1...v2.3.2) (2025-02-21)
+
+
+### Chore
+
+* bump package version and rm dep ver range ([#17](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/issues/17)) ([07551ac](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/07551acbc971aec13904eeae3b2bf62c3064fd57))
+* maintenance updates ([#15](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/issues/15)) ([4bf8f18](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/4bf8f1861eb7fb5361ecdcbe2582d8e6137f8885))
+* maintenance updates ([#16](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/issues/16)) ([9904b29](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/9904b295914bbbda9ed89eb27a2f4fe9ab31820b))
+* update master to main in circleci config ([#18](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/issues/18)) ([9e8840b](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/9e8840be4607825f6ce798819b025d0d5f4b4ea0))
+
 ### [2.3.1](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/compare/v2.3.0...v2.3.1) (2024-12-11)
 
 
