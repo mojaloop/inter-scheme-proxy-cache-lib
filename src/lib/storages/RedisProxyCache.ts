@@ -7,6 +7,7 @@ import {
   IProxyCache,
   RedisProxyCacheConfig,
   RedisClusterProxyCacheConfig,
+  RedisConnectionStatus,
   IsLastFailure,
   AlsRequestDetails,
   ILogger,
@@ -33,7 +34,7 @@ export class RedisProxyCache implements IProxyCache {
   private isCluster = false;
 
   constructor(private readonly proxyConfig: RedisConfig) {
-    this.isCluster = isClusterConfig(proxyConfig)
+    this.isCluster = isClusterConfig(proxyConfig);
     this.log = createLogger(this.constructor.name);
     this.redisClient = this.createRedisClient();
   }
@@ -75,7 +76,7 @@ export class RedisProxyCache implements IProxyCache {
     const ttl = ttlSec ?? this.defaultTtlSec;
     const expiryTime = Date.now() + ttl * 1000;
     let isOk;
-    if(this.isCluster) {
+    if (this.isCluster) {
       // pipeline is not supported in cluster mode for multi-key operations
       const [addedCount, expirySetResult] = await Promise.all([
         this.redisClient.sadd(key, uniqueProxyIds),
@@ -89,7 +90,7 @@ export class RedisProxyCache implements IProxyCache {
       ]);
       isOk = addedCount === uniqueProxyIds.length;
     }
-    
+
     this.log.verbose('setSendToProxiesList is done', { isOk, key, uniqueProxyIds, ttl });
     return isOk;
   }
@@ -105,14 +106,14 @@ export class RedisProxyCache implements IProxyCache {
         this.redisClient.del(expiryKey),
       ]);
       isDeleted = delResult === 1 && delExpiryResult === 1;
-      logMeta = { isDeleted, delResult, delExpiryResult }
+      logMeta = { isDeleted, delResult, delExpiryResult };
     } else {
       const delResult = await this.executePipeline([
         ['del', key],
         ['del', expiryKey],
       ]);
       isDeleted = delResult[0] === 1 && delResult[1] === 1;
-      logMeta = { isDeleted, delResult }
+      logMeta = { isDeleted, delResult };
     }
     this.log.debug('sendToProxiesList is deleted', logMeta);
     return isDeleted;
@@ -125,16 +126,20 @@ export class RedisProxyCache implements IProxyCache {
     const [delCount, card] = await this.executePipeline([
       ['srem', key, proxyId],
       ['scard', key],
-    ])
+    ]);
 
-    const isLast = delCount === 1 && card === 0
+    const isLast = delCount === 1 && card === 0;
 
     if (isLast) {
       const [delKeyCount, delExpiryCount] = await Promise.all([
         this.redisClient.del(key),
-        this.redisClient.del(expiryKey)
+        this.redisClient.del(expiryKey),
       ]);
-      this.log.info('receivedErrorResponse: last response received, keys were deleted', { isLast, delKeyCount, delExpiryCount });
+      this.log.info('receivedErrorResponse: last response received, keys were deleted', {
+        isLast,
+        delKeyCount,
+        delExpiryCount,
+      });
     }
 
     this.log.info('receivedErrorResponse is done', { isLast, alsReq, delCount, card });
@@ -142,30 +147,29 @@ export class RedisProxyCache implements IProxyCache {
   }
 
   async processExpiredAlsKeys(callbackFn: ProcessExpiryKeyCallback, batchSize: number): Promise<unknown> {
-    const pattern = RedisProxyCache.formatAlsCacheExpiryKey({ sourceId: '*', type: '*', partyId: '*' })
+    const pattern = RedisProxyCache.formatAlsCacheExpiryKey({ sourceId: '*', type: '*', partyId: '*' });
 
-    const redisNodes = this.isCluster 
-      ? (this.redisClient as Cluster).nodes('master')
-      : [this.redisClient as Redis]
-    
+    const redisNodes = this.isCluster ? (this.redisClient as Cluster).nodes('master') : [this.redisClient as Redis];
+
     return Promise.all(
       redisNodes.map(async (node) => {
         return new Promise((resolve, reject) => {
-          this.processNode(node, { pattern, batchSize, callbackFn, resolve, reject })
-        })
-      })
-    )
+          this.processNode(node, { pattern, batchSize, callbackFn, resolve, reject });
+        });
+      }),
+    );
   }
 
-  async connect(): Promise<boolean> {
+  async connect(): Promise<RedisConnectionStatus> {
     if (this.isConnected) {
-      this.log.warn('proxyCache is already connected');
-      return true;
+      const { status } = this.redisClient;
+      this.log.warn('proxyCache is already connected', { status });
+      return status;
     }
     await this.redisClient.connect();
     const { status } = this.redisClient;
-    this.log.verbose('proxyCache is connected', { status });
-    return true;
+    this.log.info('proxyCache is connected', { status });
+    return status;
   }
 
   async disconnect(): Promise<boolean> {
@@ -247,42 +251,46 @@ export class RedisProxyCache implements IProxyCache {
   }
 
   private async processNode(node: Redis, options: ProcessNodeOptions): Promise<void> {
-    const { pattern: match, batchSize: count, callbackFn, resolve, reject } = options
-    const stream = node.scanStream({ match, count })
+    const { pattern: match, batchSize: count, callbackFn, resolve, reject } = options;
+    const stream = node.scanStream({ match, count });
 
     stream.on('data', async (keys) => {
-      stream.pause()
+      stream.pause();
       try {
-        await Promise.all(keys.map((key: string) => this.processExpiryKey(key, callbackFn)))
+        await Promise.all(keys.map((key: string) => this.processExpiryKey(key, callbackFn)));
       } catch (err: unknown) {
-        stream.destroy(err as Error)
-        reject(err as Error)
+        stream.destroy(err as Error);
+        reject(err as Error);
       }
-      stream.resume()
-    })
-    stream.on('end', resolve)
+      stream.resume();
+    });
+    stream.on('end', resolve);
   }
 
   private async processExpiryKey(expiryKey: string, callbackFn: ProcessExpiryKeyCallback): Promise<any> {
-    const actualKey = expiryKey.replace(':expiresAt', '')
-    const expiresAt = await this.redisClient.get(expiryKey)
+    const actualKey = expiryKey.replace(':expiresAt', '');
+    const expiresAt = await this.redisClient.get(expiryKey);
 
-    if (Number(expiresAt) >= Date.now()) return
-    
+    if (Number(expiresAt) >= Date.now()) return;
+
     const deleteKeys = this.isCluster
       ? () => Promise.all([this.redisClient.del(actualKey), this.redisClient.del(expiryKey)])
-      : () => this.executePipeline([['del', actualKey], ['del', expiryKey]]);
-    
+      : () =>
+          this.executePipeline([
+            ['del', actualKey],
+            ['del', expiryKey],
+          ]);
+
     return Promise.all([
       callbackFn(actualKey).catch((err) => {
-        this.log.warn(`processExpiryKey callback error ${expiryKey}`, err)
-        return Promise.resolve()
+        this.log.warn(`processExpiryKey callback error ${expiryKey}`, err);
+        return Promise.resolve();
       }),
       deleteKeys().catch((err) => {
-        this.log.error(`processExpiryKey key deletion error ${expiryKey}`, err)
+        this.log.error(`processExpiryKey key deletion error ${expiryKey}`, err);
         return Promise.reject(err);
-      })
-    ])
+      }),
+    ]);
   }
 
   static formatAlsCacheKey(alsReq: AlsRequestDetails): string {

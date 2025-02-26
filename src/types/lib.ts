@@ -1,9 +1,9 @@
+import { Redis, Cluster } from 'ioredis';
 import { storageTypeValues } from '../constants';
 import { LogLevel, Prettify } from './utils';
 
 export type StorageType = (typeof storageTypeValues)[number];
 
-export type ProcessExpiryKeyCallback = (key: string) => Promise<void>;
 export interface IProxyCache {
   addDfspIdToProxyMapping: (dfspId: string, proxyId: string) => Promise<boolean>;
   lookupProxyByDfspId: (dfspId: string) => Promise<string | null>;
@@ -23,11 +23,13 @@ export interface IProxyCache {
 
   processExpiredAlsKeys: (callbackFn: ProcessExpiryKeyCallback, batchSize: number) => Promise<unknown>;
 
-  connect: () => Promise<boolean>;
+  connect: () => Promise<RedisConnectionStatus>;
   disconnect: () => Promise<boolean>;
   healthCheck: () => Promise<boolean>;
   isConnected: boolean;
 }
+
+export type ProcessExpiryKeyCallback = (key: string) => Promise<void>;
 
 export type PartyIdType = string; // todo: use enum for this type
 
@@ -60,8 +62,10 @@ export type RedisOptions = {
   db?: number; // Defaults to 0
   // define all needed options here
 };
- 
+
 export type RedisClusterOptions = RedisOptions;
+
+export type RedisConnectionStatus = Redis['status'] | Cluster['status'];
 
 /** **(!)**  _MySqlProxyCacheConfig_ is not supported yet */
 // prettier-ignore
