@@ -1,6 +1,6 @@
 {
   "name": "@mojaloop/inter-scheme-proxy-cache-lib",
-  "version": "2.3.3-snapshot.0",
+  "version": "2.3.4-snapshot.0",
   "description": "Common component, that provides scheme proxy caching mapping (ISPC)",
   "author": "Eugen Klymniuk (geka-evk)",
   "contributors": [
@@ -58,7 +58,7 @@
     "@typescript-eslint/parser": "8.25.0",
     "dotenv": "16.4.7",
     "eslint": "9.21.0",
-    "eslint-config-prettier": "10.0.1",
+    "eslint-config-prettier": "10.0.2",
     "eslint-plugin-import": "2.31.0",
     "husky": "9.1.7",
     "ioredis-mock": "8.9.0",

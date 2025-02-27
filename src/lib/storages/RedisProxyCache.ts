@@ -149,7 +149,10 @@ export class RedisProxyCache implements IProxyCache {
   async processExpiredAlsKeys(callbackFn: ProcessExpiryKeyCallback, batchSize: number): Promise<unknown> {
     const pattern = RedisProxyCache.formatAlsCacheExpiryKey({ sourceId: '*', type: '*', partyId: '*' });
 
-    const redisNodes = this.isCluster ? (this.redisClient as Cluster).nodes('master') : [this.redisClient as Redis];
+    // prettier-ignore
+    const redisNodes = this.isCluster
+      ? (this.redisClient as Cluster).nodes('master')
+      : [this.redisClient as Redis];
 
     return Promise.all(
       redisNodes.map(async (node) => {
@@ -273,13 +276,10 @@ export class RedisProxyCache implements IProxyCache {
 
     if (Number(expiresAt) >= Date.now()) return;
 
+    // prettier-ignore
     const deleteKeys = this.isCluster
       ? () => Promise.all([this.redisClient.del(actualKey), this.redisClient.del(expiryKey)])
-      : () =>
-          this.executePipeline([
-            ['del', actualKey],
-            ['del', expiryKey],
-          ]);
+      : () => this.executePipeline([['del', actualKey], ['del', expiryKey]]);
 
     return Promise.all([
       callbackFn(actualKey).catch((err) => {
