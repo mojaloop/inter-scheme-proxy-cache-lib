@@ -1,11 +1,11 @@
 import js from '@eslint/js';
 import ts from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
-import globals from "globals";
+import globals from 'globals';
 
 export default [
     {
-        files: ['**/*.ts', '**/*.tsx'], // Target TypeScript files
+        files: ['**/*.ts'], // Target TypeScript files
         languageOptions: {
             parser: tsParser,
             ecmaVersion: 2022, // Support modern JavaScript
@@ -20,10 +20,29 @@ export default [
         rules: {
             ...js.configs.recommended.rules, // Include recommended JavaScript rules
             ...ts.configs.recommended.rules, // Include recommended TypeScript rules
-            '@typescript-eslint/no-explicit-any': 'off', // Disable "no-explicit-any"
-            '@typescript-eslint/no-var-requires': 'off', // Disable "no-var-requires"
-            '@typescript-eslint/no-require-imports': 'off', // Disable "no-require-imports"
+            '@typescript-eslint/no-explicit-any': 'error',
+            'no-console': 'error',
+            indent: ['error', 2, { SwitchCase: 1 }],
         },
-        ignores: ["**/coverage", "**/templates"]
+        env: {
+            node: true,
+            jest: true,
+        },
+        ignores: ["**/coverage", "**/templates"],
+        overrides: [
+            {
+                files: ['test/**/*.ts'],
+                env: {
+                    jest: true,
+                },
+                rules: {
+                    // add here any rules specific to test files
+                },
+            },
+            {
+                extends: ['plugin:@typescript-eslint/disable-type-checked'],
+                files: ['./**/*.js'],
+            },
+        ],
     },
 ]

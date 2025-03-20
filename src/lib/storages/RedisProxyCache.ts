@@ -146,6 +146,13 @@ export class RedisProxyCache implements IProxyCache {
     return isLast;
   }
 
+  async isPendingCallback(alsReq: AlsRequestDetails): Promise<boolean> {
+    const key = RedisProxyCache.formatAlsCacheKey(alsReq);
+    const card = await this.redisClient.scard(key);
+    this.log.debug('isPendingCallbacks for alsReq is done', { key, card });
+    return card > 0;
+  }
+
   async processExpiredAlsKeys(callbackFn: ProcessExpiryKeyCallback, batchSize: number): Promise<unknown> {
     const pattern = RedisProxyCache.formatAlsCacheExpiryKey({ sourceId: '*', type: '*', partyId: '*' });
 

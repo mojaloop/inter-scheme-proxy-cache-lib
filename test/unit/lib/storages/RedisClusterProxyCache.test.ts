@@ -78,6 +78,11 @@ describe('RedisClusterProxyCache Tests -->', () => {
       expect(isPassed).toBe(true);
     });
 
+    test('should check if ALS request is waiting for a callback', async () => {
+      const isPassed = await useCases.checkIfAlsRequestWaitingForCallbackUseCase(proxyCache);
+      expect(isPassed).toBe(true);
+    });
+
     test('should set the same proxiesList only once', async () => {
       const isPassed = await useCases.setSendToProxiesListOnceUseCase(proxyCache);
       expect(isPassed).toBe(true);
@@ -112,7 +117,7 @@ describe('RedisClusterProxyCache Tests -->', () => {
       const expiryKey = RedisProxyCache.formatAlsCacheExpiryKey(alsReq);
       let [rawExistsResult, rawExpiryKeyExistsResult] = await Promise.all([
         await redisClient.exists(key),
-        await redisClient.exists(expiryKey)
+        await redisClient.exists(expiryKey),
       ]);
       expect(rawExistsResult).toBe(1);
       expect(rawExpiryKeyExistsResult).toBe(1);
@@ -122,7 +127,7 @@ describe('RedisClusterProxyCache Tests -->', () => {
       // assert that the keys were not removed by Redis
       [rawExistsResult, rawExpiryKeyExistsResult] = await Promise.all([
         await redisClient.exists(key),
-        await redisClient.exists(expiryKey)
+        await redisClient.exists(expiryKey),
       ]);
       expect(rawExistsResult).toBe(1);
       expect(rawExpiryKeyExistsResult).toBe(1);
