@@ -26,20 +26,5 @@ export default [
       indent: ['error', 2, { SwitchCase: 1 }],
     },
     ignores: ['**/coverage', '**/templates'],
-    overrides: [
-      {
-        files: ['test/**/*.ts'],
-        env: {
-          jest: true,
-        },
-        rules: {
-          // add here any rules specific to test files
-        },
-      },
-      {
-        extends: ['plugin:@typescript-eslint/disable-type-checked'],
-        files: ['./**/*.js'],
-      },
-    ],
   },
 ];
