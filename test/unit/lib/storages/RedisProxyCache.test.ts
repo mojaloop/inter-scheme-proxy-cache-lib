@@ -78,6 +78,11 @@ describe('RedisProxyCache Tests -->', () => {
       expect(isPassed).toBe(true);
     });
 
+    test('should check if ALS request is waiting for a callback', async () => {
+      const isPassed = await useCases.checkIfAlsRequestWaitingForCallbackUseCase(proxyCache);
+      expect(isPassed).toBe(true);
+    });
+
     test('should set the same proxiesList only once', async () => {
       const isPassed = await useCases.setSendToProxiesListOnceUseCase(proxyCache);
       expect(isPassed).toBe(true);
@@ -115,9 +120,9 @@ describe('RedisProxyCache Tests -->', () => {
       const expiryKey = RedisProxyCache.formatAlsCacheExpiryKey(alsReq);
       const rawTtlExistsResult = await redisClient.exists(expiryKey);
       expect(rawTtlExistsResult).toBe(1);
-      
+
       await sleep(ttlSec * 1000);
-      
+
       // ensure that key is not removed by Redis
       rawExistsResult = await redisClient.exists(key);
       expect(rawExistsResult).toBe(1);
@@ -185,9 +190,9 @@ describe('RedisProxyCache Tests -->', () => {
       const batchSize = 10;
 
       await sleep(2500);
-      
+
       await proxyCache.processExpiredAlsKeys(mockCallback, batchSize);
-      
+
       const key0 = RedisProxyCache.formatAlsCacheKey(alsReq0);
       const key1 = RedisProxyCache.formatAlsCacheKey(alsReq1);
       expect(mockCallback).toHaveBeenCalledTimes(2);
@@ -209,7 +214,7 @@ describe('RedisProxyCache Tests -->', () => {
 
       const mockCallback = jest.fn().mockImplementation(() => Promise.reject(new Error('mock callback test error')));
       const batchSize = 10;
-      
+
       await sleep(2500);
 
       await expect(proxyCache.processExpiredAlsKeys(mockCallback, batchSize)).resolves.toStrictEqual([undefined]);
@@ -227,8 +232,8 @@ describe('RedisProxyCache Tests -->', () => {
       expect(rawExistsResult1).toBe(0);
 
       await redisClient.flushall();
-    }, 100000000)
-  })
+    }, 100000000);
+  });
 
   test('should have healthCheck method', async () => {
     const isOk = await proxyCache.healthCheck();

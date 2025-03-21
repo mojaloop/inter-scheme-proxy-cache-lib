@@ -17,9 +17,11 @@ export interface IProxyCache {
   receivedSuccessResponse: (alsRequest: AlsRequestDetails) => Promise<boolean>;
 
   /**
-   *  _receivedErrorResponse_ returns `true` if the last failed response is detected. In that case Parties error callback should be sent.
+   *  Returns `true` if the last failed response is detected. In that case Parties error callback should be sent.
    */
   receivedErrorResponse: (alsRequest: AlsRequestDetails, proxyId: string) => Promise<IsLastFailure>;
+
+  isPendingCallback: (alsRequest: AlsRequestDetails) => Promise<boolean>;
 
   processExpiredAlsKeys: (callbackFn: ProcessExpiryKeyCallback, batchSize: number) => Promise<unknown>;
 
