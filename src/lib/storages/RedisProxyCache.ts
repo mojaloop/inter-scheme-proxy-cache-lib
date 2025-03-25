@@ -2,7 +2,7 @@ import Redis, { Cluster } from 'ioredis';
 
 import * as validation from '../../validation';
 import config from '../../config';
-import { createLogger } from '../../utils';
+import { logger } from '../../utils';
 import {
   IProxyCache,
   RedisProxyCacheConfig,
@@ -12,8 +12,11 @@ import {
   AlsRequestDetails,
   ILogger,
   ProcessExpiryKeyCallback,
+  ProcessNodeStreamSingleKeyCallback,
 } from '../../types';
 import { REDIS_KEYS_PREFIXES, REDIS_SUCCESS, REDIS_IS_CONNECTED_STATUSES } from './constants';
+
+const PROCESS_NODE_STREAM_TIMEOUT_MS = 2 * 60 * 1000; // todo: make configurable
 
 type RedisClient = Redis | Cluster;
 type RedisConfig = RedisProxyCacheConfig | RedisClusterProxyCacheConfig;
@@ -23,6 +26,11 @@ type ProcessNodeOptions = {
   callbackFn: ProcessExpiryKeyCallback;
   resolve: (...args: any[]) => void;
   reject: (reason?: Error) => void;
+};
+
+type NodeStreamOptions = {
+  pattern: string;
+  batchSize: number;
 };
 
 const isClusterConfig = (config: RedisConfig): config is RedisClusterProxyCacheConfig => 'cluster' in config;
@@ -35,8 +43,15 @@ export class RedisProxyCache implements IProxyCache {
 
   constructor(private readonly proxyConfig: RedisConfig) {
     this.isCluster = isClusterConfig(proxyConfig);
-    this.log = createLogger(this.constructor.name);
+    this.log = logger.child({ component: this.constructor.name });
     this.redisClient = this.createRedisClient();
+  }
+
+  protected get redisNodes() {
+    // prettier-ignore
+    return this.isCluster
+      ? (this.redisClient as Cluster).nodes('master')
+      : [this.redisClient as Redis];
   }
 
   async addDfspIdToProxyMapping(dfspId: string, proxyId: string): Promise<boolean> {
@@ -60,6 +75,25 @@ export class RedisProxyCache implements IProxyCache {
     const isRemoved = result === 1;
     this.log.debug('proxyMapping is removed', { key, isRemoved, result });
     return isRemoved;
+  }
+
+  async removeProxyGetPartiesTimeout(alsReq: AlsRequestDetails, proxyId: string): Promise<boolean> {
+    const key = RedisProxyCache.formatProxyGetPartiesExpiryKey(alsReq, proxyId);
+    const result = await this.redisClient.del(key);
+    this.log.debug('removeProxyGetPartiesTimeout is done', { result, key });
+    return result > 0;
+  }
+
+  async setProxyGetPartiesTimeout(
+    alsReq: AlsRequestDetails,
+    proxyId: string,
+    ttlSec: number = this.defaultTtlSec,
+  ): Promise<boolean> {
+    const key = RedisProxyCache.formatProxyGetPartiesExpiryKey(alsReq, proxyId);
+    const expiryTime = Date.now() + ttlSec * 1000;
+    const result = await this.redisClient.set(key, expiryTime);
+    this.log.debug('setProxyGetPartiesTimeout is done', { result, key, expiryTime });
+    return result === REDIS_SUCCESS;
   }
 
   async setSendToProxiesList(alsReq: AlsRequestDetails, proxyIds: string[], ttlSec: number): Promise<boolean> {
@@ -153,21 +187,34 @@ export class RedisProxyCache implements IProxyCache {
     return card > 0;
   }
 
+  // todo: refactor to use processAllNodesStream
   async processExpiredAlsKeys(callbackFn: ProcessExpiryKeyCallback, batchSize: number): Promise<unknown> {
     const pattern = RedisProxyCache.formatAlsCacheExpiryKey({ sourceId: '*', type: '*', partyId: '*' });
 
-    // prettier-ignore
-    const redisNodes = this.isCluster
-      ? (this.redisClient as Cluster).nodes('master')
-      : [this.redisClient as Redis];
-
     return Promise.all(
-      redisNodes.map(async (node) => {
+      this.redisNodes.map(async (node) => {
         return new Promise((resolve, reject) => {
           this.processNode(node, { pattern, batchSize, callbackFn, resolve, reject });
         });
       }),
     );
+  }
+
+  // prettier-ignore
+  async processExpiredProxyGetPartiesKeys(customFn: ProcessNodeStreamSingleKeyCallback, batchSize: number): Promise<unknown> {
+    const pattern = RedisProxyCache.formatProxyGetPartiesExpiryKey({ sourceId: '*', type: '*', partyId: '*' }, '*');
+
+    return this.processAllNodesStream({ pattern, batchSize }, async (key: string) => {
+      const result = await Promise.all([
+        customFn(key.replace(':expiresAt', '')).catch((err) => {
+          this.log.warn(`error processing expired proxyGetParties key ${key} - `, err);
+          return err; // or is it better to throw here?
+        }),
+        this.redisClient.del(key),
+      ]);
+      this.log.verbose('processExpiredProxyGetPartiesKeys is done', { result });
+      return result;
+    });
   }
 
   async connect(): Promise<RedisConnectionStatus> {
@@ -260,6 +307,7 @@ export class RedisProxyCache implements IProxyCache {
     }
   }
 
+  /** @deprecated Use processAllNodesStream */
   private async processNode(node: Redis, options: ProcessNodeOptions): Promise<void> {
     const { pattern: match, batchSize: count, callbackFn, resolve, reject } = options;
     const stream = node.scanStream({ match, count });
@@ -275,6 +323,62 @@ export class RedisProxyCache implements IProxyCache {
       stream.resume();
     });
     stream.on('end', resolve);
+  }
+
+  private async processAllNodesStream(options: NodeStreamOptions, callbackFn: ProcessNodeStreamSingleKeyCallback) {
+    const result = await Promise.all(
+      this.redisNodes.map((node) => this.processSingleNodeStream(node, options, callbackFn)),
+    );
+    this.log.debug('processAllNodesStream is done', { result });
+    return result;
+  }
+
+  private async processSingleNodeStream(
+    node: Redis,
+    options: NodeStreamOptions,
+    processKeyFn: ProcessNodeStreamSingleKeyCallback,
+  ): Promise<unknown> {
+    const { pattern: match, batchSize: count } = options;
+
+    return new Promise((resolve, reject) => {
+      const stream = node.scanStream({ match, count });
+      let result: unknown;
+
+      let timer: ReturnType<typeof setTimeout> | null = setTimeout(() => {
+        const err = new Error(`Timeout during processNodeStream [${PROCESS_NODE_STREAM_TIMEOUT_MS} ms]`);
+        stream.destroy(err);
+        reject(err);
+      }, PROCESS_NODE_STREAM_TIMEOUT_MS);
+      const clearTimer = () => {
+        if (timer) {
+          clearTimeout(timer);
+          timer = null;
+        }
+      };
+
+      stream.on('data', async (keys) => {
+        stream.pause();
+        try {
+          result = await Promise.all(keys.map(processKeyFn));
+        } catch (err: unknown) {
+          this.log.warn('error in processNodeStream data: ', err);
+          clearTimer();
+          stream.destroy(err as Error);
+          reject(err);
+        }
+        stream.resume();
+      });
+      stream.on('end', () => {
+        this.log.debug('processNodeStream is done', { result });
+        clearTimer();
+        resolve(result);
+      });
+      stream.on('error', (err) => {
+        this.log.warn('processNodeStream stream error: ', err);
+        clearTimer();
+        reject(err);
+      });
+    });
   }
 
   private async processExpiryKey(expiryKey: string, callbackFn: ProcessExpiryKeyCallback): Promise<any> {
@@ -307,6 +411,10 @@ export class RedisProxyCache implements IProxyCache {
 
   static formatAlsCacheExpiryKey(alsReq: AlsRequestDetails): string {
     return `${RedisProxyCache.formatAlsCacheKey(alsReq)}:expiresAt`;
+  }
+
+  static formatProxyGetPartiesExpiryKey(alsReq: AlsRequestDetails, proxyId: string): string {
+    return `${REDIS_KEYS_PREFIXES.getParties}:${proxyId}:${alsReq.sourceId}:${alsReq.type}:${alsReq.partyId}:expiresAt`;
   }
 
   static formatDfspCacheKey(dfspId: string): string {

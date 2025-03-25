@@ -8,12 +8,15 @@ export interface IProxyCache {
   addDfspIdToProxyMapping: (dfspId: string, proxyId: string) => Promise<boolean>;
   lookupProxyByDfspId: (dfspId: string) => Promise<string | null>;
   removeDfspIdFromProxyMapping: (dfspId: string) => Promise<boolean>;
+  removeProxyGetPartiesTimeout: (alsReq: AlsRequestDetails, proxyId: string) => Promise<boolean>;
+  setProxyGetPartiesTimeout: (alsReq: AlsRequestDetails, proxyId: string, ttlSec?: number) => Promise<boolean>;
 
   /**
-   *  _setSendToProxiesList_ should be called if there's no party's DFSP from Oracle GET /participant/{ID} request,
-   *    before sending discovery calls to all available proxies.
+   *  Should be called if there's no party's DFSP from Oracle GET /participant/{ID} request,
+   *   before sending discovery calls to all available proxies.
    */
   setSendToProxiesList: (alsRequest: AlsRequestDetails, proxyIds: string[], ttlSec: number) => Promise<boolean>;
+
   receivedSuccessResponse: (alsRequest: AlsRequestDetails) => Promise<boolean>;
 
   /**
@@ -24,6 +27,7 @@ export interface IProxyCache {
   isPendingCallback: (alsRequest: AlsRequestDetails) => Promise<boolean>;
 
   processExpiredAlsKeys: (callbackFn: ProcessExpiryKeyCallback, batchSize: number) => Promise<unknown>;
+  processExpiredProxyGetPartiesKeys: (callbackFn: ProcessExpiryKeyCallback, batchSize: number) => Promise<unknown>;
 
   connect: () => Promise<RedisConnectionStatus>;
   disconnect: () => Promise<boolean>;
@@ -31,6 +35,7 @@ export interface IProxyCache {
   isConnected: boolean;
 }
 
+export type ProcessNodeStreamSingleKeyCallback = (key: string) => Promise<unknown>;
 export type ProcessExpiryKeyCallback = (key: string) => Promise<void>;
 
 export type PartyIdType = string; // todo: use enum for this type
