@@ -79,6 +79,22 @@ export const detectFinalErrorCallbackUseCase = async (proxyCache: IProxyCache) =
   return true;
 };
 
+export const checkIfAlsRequestWaitingForCallbackUseCase = async (proxyCache: IProxyCache) => {
+  const alsReq = fixtures.alsRequestDetailsDto();
+  const proxyIds = ['proxyA', 'proxyB'];
+
+  const isOk = await proxyCache.setSendToProxiesList(alsReq, proxyIds, 10);
+  expect(isOk).toBe(true);
+
+  let isPending = await proxyCache.isPendingCallback(alsReq);
+  expect(isPending).toBe(true);
+
+  isPending = await proxyCache.isPendingCallback(fixtures.alsRequestDetailsDto({ type: 'XXX' }));
+  expect(isPending).toBe(false);
+
+  return true;
+};
+
 export const setSendToProxiesListOnceUseCase = async (proxyCache: IProxyCache) => {
   const alsReq = fixtures.alsRequestDetailsDto();
   const proxyIds = [`proxy1-${Date.now()}`, `proxy2-${Date.now()}`];
@@ -120,7 +136,7 @@ export const processExpiredAlsKeysUseCase = async (proxyCache: IProxyCache) => {
   await sleep(1_000);
   const mockCallback = jest.fn().mockResolvedValue(true);
   await proxyCache.processExpiredAlsKeys(mockCallback, 10);
-  
+
   expect(mockCallback).toHaveBeenCalled();
   return true;
 };
