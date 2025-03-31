@@ -1,4 +1,4 @@
 ## Add a comment indicating the reason for each rejected dependency upgrade added to this list, and what should be done to resolve it (i.e. handle it through a story, etc).
 reject: [
-  "typedoc" ## version 0.28.x caused error during npm run docs: "Cannot convert undefined or null to object"
+  "typedoc" // typedoc-theme-hierarchy is not compatible with typedoc > 0.27.*
 ]

@@ -33,7 +33,7 @@ type NodeStreamOptions = {
   batchSize: number;
 };
 
-const isClusterConfig = (config: RedisConfig): config is RedisClusterProxyCacheConfig => 'cluster' in config;
+const isClusterConfig = (config: RedisConfig, isCluster: boolean): config is RedisClusterProxyCacheConfig => isCluster;
 
 export class RedisProxyCache implements IProxyCache {
   private readonly redisClient: RedisClient;
@@ -41,8 +41,12 @@ export class RedisProxyCache implements IProxyCache {
   private readonly defaultTtlSec = config.get('defaultTtlSec');
   private isCluster = false;
 
-  constructor(private readonly proxyConfig: RedisConfig) {
-    this.isCluster = isClusterConfig(proxyConfig);
+  constructor(
+    private readonly proxyConfig: RedisConfig,
+    isCluster: boolean = false,
+  ) {
+    isClusterConfig(proxyConfig, isCluster);
+    this.isCluster = isCluster;
     this.log = logger.child({ component: this.constructor.name });
     this.redisClient = this.createRedisClient();
   }
@@ -258,7 +262,7 @@ export class RedisProxyCache implements IProxyCache {
   private createRedisClient() {
     this.proxyConfig.lazyConnect ??= true;
     // prettier-ignore
-    const redisClient = isClusterConfig(this.proxyConfig)
+    const redisClient = isClusterConfig(this.proxyConfig, this.isCluster)
       ? new Cluster(this.proxyConfig.cluster, this.proxyConfig)
       : new Redis(this.proxyConfig);
 
