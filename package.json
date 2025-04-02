@@ -42,7 +42,7 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@mojaloop/central-services-logger": "11.8.0",
+    "@mojaloop/central-services-logger": "11.8.1",
     "ajv": "8.17.1",
     "convict": "6.2.4",
     "fast-safe-stringify": "2.1.1",
@@ -53,9 +53,9 @@
     "@commitlint/config-conventional": "19.8.0",
     "@types/convict": "6.1.6",
     "@types/jest": "29.5.14",
-    "@types/node": "22.13.14",
-    "@typescript-eslint/eslint-plugin": "8.28.0",
-    "@typescript-eslint/parser": "8.28.0",
+    "@types/node": "22.13.17",
+    "@typescript-eslint/eslint-plugin": "8.29.0",
+    "@typescript-eslint/parser": "8.29.0",
     "dotenv": "16.4.7",
     "eslint": "9.23.0",
     "eslint-config-prettier": "10.1.1",
@@ -70,11 +70,11 @@
     "prettier": "3.5.3",
     "replace": "1.2.2",
     "standard-version": "9.5.0",
-    "ts-jest": "29.3.0",
+    "ts-jest": "29.3.1",
     "ts-node": "10.9.2",
     "tsup": "8.4.0",
-    "typedoc": "0.27.9",
-    "typedoc-theme-hierarchy": "5.0.5",
+    "typedoc": "0.28.1",
+    "typedoc-theme-hierarchy": "6.0.0",
     "typescript": "5.8.2"
   },
   "overrides": {
