@@ -60,6 +60,10 @@ describe('RedisProxyCache Integration Tests -->', () => {
       await useCases.detectFinalErrorCallbackUseCase(proxyCache);
     });
 
+    test('should check if ALS request waiting for a callback 11', async () => {
+      await useCases.checkIfAlsRequestWaitingForCallbackUseCase(proxyCache);
+    });
+
     test('should save only the first alsRequest', async () => {
       await useCases.setSendToProxiesListOnceUseCase(proxyCache);
     });
