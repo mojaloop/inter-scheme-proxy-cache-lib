@@ -25,11 +25,12 @@
     "test:coverage-check": "npm run test:unit -- --coverage",
     "test:int": "jest --testMatch='**/test/integration/**/*.test.ts'",
     "test:functional": "echo \"ACTION: Add functional test here, or remove this script. Also check CI configs to comment out the necessary job'\"",
-    "test:integration": "npm run test:int",
+    "test:integration": "npm run dc:build && npm run dc:up && npm run wait-4-docker && npm run test:int && npm run dc:down",
     "lint": "eslint ./src/**/*.ts ./test/**/*.ts",
     "lint:fix": "npm run lint -- --fix",
     "build": "tsup",
     "docs": "typedoc",
+    "dc:build": ". ./env.sh && docker compose build",
     "dc:up": ". ./env.sh && docker compose $npm_package_config_env_file up -d  &&  docker ps",
     "dc:down": ". ./env.sh && docker compose $npm_package_config_env_file down -v",
     "audit:fix": "npm audit fix",
@@ -39,7 +40,8 @@
     "release": "npx standard-version --no-verify --releaseCommitMessageFormat 'ci(release): {{currentTag}} [skip ci]'",
     "snapshot": "npx standard-version --no-verify --skip.changelog --prerelease snapshot --releaseCommitMessageFormat 'ci(snapshot): {{currentTag}}'",
     "prepare": "husky || true",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "wait-4-docker": "./docker/wait-for-containers.sh"
   },
   "dependencies": {
     "@mojaloop/central-services-logger": "11.8.1",
@@ -70,7 +72,7 @@
     "prettier": "3.5.3",
     "replace": "1.2.2",
     "standard-version": "9.5.0",
-    "ts-jest": "29.3.3",
+    "ts-jest": "^29.3.3",
     "ts-node": "10.9.2",
     "tsup": "8.4.0",
     "typedoc": "0.28.4",
@@ -83,7 +85,7 @@
     "glob": "9.3.5"
   },
   "engines": {
-    "node": ">=18.x"
+    "node": ">=22.15.0"
   },
   "standard-version": {
     "scripts": {
