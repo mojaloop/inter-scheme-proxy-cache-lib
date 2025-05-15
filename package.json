@@ -44,7 +44,7 @@
     "wait-4-docker": "./docker/wait-for-containers.sh"
   },
   "dependencies": {
-    "@mojaloop/central-services-logger": "11.8.1",
+    "@mojaloop/central-services-logger": "11.9.0",
     "ajv": "8.17.1",
     "convict": "6.2.4",
     "fast-safe-stringify": "2.1.1",
