@@ -23,12 +23,23 @@ import { createProxyCache, STORAGE_TYPES } from '@mojaloop/inter-scheme-proxy-ca
 // CJS
 const { createProxyCache } = require('@mojaloop/inter-scheme-proxy-cache-lib');
 
-const proxyCache = createProxyCache(STORAGE_TYPES.redis, { 
-  clster: [
+// Redis Cluster
+const proxyCacheCluster = createProxyCache(STORAGE_TYPES.redisCluster, {
+  cluster: [
     { host: 'localhost', port: 6379 },
+    { host: 'localhost', port: 6380 },
+    { host: 'localhost', port: 6381 },
   ],
-  ...
+  // Optional: username, password, etc.
 });
+
+// Single Redis instance
+const proxyCache = createProxyCache(STORAGE_TYPES.redis, {
+  host: 'localhost',
+  port: 6379,
+  // Optional: username, password, db, etc.
+});
+
 await proxyCache.connect();
 await proxyCache.addDfspIdToProxyMapping('dfsp_1', 'proxyAB');
 ```
@@ -40,12 +51,25 @@ Check [_IProxyCache_](https://mojaloop.github.io/inter-scheme-proxy-cache-lib/in
 Comprehensive and interactive API documentation, based on TypeScript source code of the package,
 could be found [**here**](https://mojaloop.github.io/inter-scheme-proxy-cache-lib)
 
-### Environment Variables
-| Env Variable Name           | Default Value | Description                        | 
+### Configuration
+
+#### Storage Types
+The library supports the following storage types:
+
+- `STORAGE_TYPES.redis` - Single Redis instance
+- `STORAGE_TYPES.redisCluster` - Redis cluster configuration
+- `STORAGE_TYPES.mysql` - MySQL storage (not implemented yet)
+
+#### Environment Variables
+| Env Variable Name           | Default Value | Description                        |
 |-----------------------------|---------------|------------------------------------|
 | PROXY_CACHE_LOG_LEVEL       | `warn`        | The log level for the proxyCache |
 | PROXY_CACHE_DEFAULT_TTL_SEC | `30`          | Default cache TTL for sendToProxiesList keys |
 
+
+### Requirements
+
+- Node.js >= 22.15.0
 
 ---
 ## Development
