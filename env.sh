@@ -13,3 +13,4 @@ get_external_ip() {
 
 # set/override dynamic variables
 export REDIS_CLUSTER_ANNOUNCE_IP=$(get_external_ip)
+echo "REDIS_CLUSTER_ANNOUNCE_IP: $REDIS_CLUSTER_ANNOUNCE_IP"
