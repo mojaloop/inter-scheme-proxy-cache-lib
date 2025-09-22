@@ -41,7 +41,10 @@ const proxyCache = createProxyCache(STORAGE_TYPES.redis, {
 });
 
 await proxyCache.connect();
+
+// Basic DFSP to proxy mapping
 await proxyCache.addDfspIdToProxyMapping('dfsp_1', 'proxyAB');
+const proxyId = await proxyCache.lookupProxyByDfspId('dfsp_1');
 ```
 
 ---

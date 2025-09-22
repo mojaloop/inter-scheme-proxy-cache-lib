@@ -35,10 +35,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Storage Layer**: Currently supports Redis (single instance and cluster) with the `RedisProxyCache` class. MySQL support is planned but not implemented.
 
 **Main Interface**: `IProxyCache` defines the contract for all proxy cache implementations, providing methods for:
-- DFSP to proxy mapping management
-- Proxy timeout handling
-- Failure tracking and response processing
-- Expired key processing
+- DFSP to proxy mapping management (`addDfspIdToProxyMapping`, `lookupProxyByDfspId`, `removeDfspIdFromProxyMapping`)
+- Proxy timeout handling (`setProxyGetPartiesTimeout`, `removeProxyGetPartiesTimeout`)
+- Callback state management (`isPendingCallback` - checks if a callback is pending for a specific ISDf)
+- Success/failure response processing (`receivedSuccessResponse`, `receivedErrorResponse`)
+- Multi-proxy discovery workflow (`setSendToProxiesList` - manages sending requests to multiple proxies when no direct mapping exists)
+- Expired key processing (`processExpiredAlsKeys`, `processExpiredProxyGetPartiesKeys`)
 
 ### Key Modules
 
@@ -67,6 +69,12 @@ src/
 - **Integration Tests**: Located in `test/integration/` - test against real Redis cluster using Docker
 - **Test Environment**: Uses Jest with ts-jest for TypeScript support
 - **Mocking**: Uses `ioredis-mock` for unit testing Redis interactions
+
+### Testing Key Functionality
+- **Callback Management**: Tests verify `isPendingCallback`, `receivedSuccessResponse`, and `receivedErrorResponse` workflows
+- **Timeout Scenarios**: Integration tests cover `setProxyGetPartiesTimeout` and `removeProxyGetPartiesTimeout` behavior
+- **Multi-proxy Discovery**: Tests validate `setSendToProxiesList` functionality and proxy failure handling
+- **Expired Key Processing**: Tests ensure proper cleanup of expired ALS and proxy timeout keys
 
 ## Configuration
 
