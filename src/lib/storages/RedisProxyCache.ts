@@ -123,7 +123,7 @@ export class RedisProxyCache implements IProxyCache {
       isOk = addedCount === uniqueProxyIds.length && expirySetResult === REDIS_SUCCESS;
     } else {
       const [addedCount] = await this.executePipeline([
-        ['sadd', key, uniqueProxyIds],
+        ['sadd', key, ...uniqueProxyIds],
         ['set', expiryKey, expiryTime],
       ]);
       isOk = addedCount === uniqueProxyIds.length;
