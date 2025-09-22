@@ -443,7 +443,7 @@ export class RedisProxyCache implements IProxyCache {
   }
 
   private calculateExpiryTimestampInMs(ttlSec: number = this.defaultTtlSec): number {
-    if (typeof ttlSec === 'number' || ttlSec > 0) {
+    if (typeof ttlSec === 'number' && ttlSec > 0) {
       return Date.now() + ttlSec * 1000;
     }
     throw new Error(`Invalid TTL value: ${ttlSec}. Expected a positive number`);
