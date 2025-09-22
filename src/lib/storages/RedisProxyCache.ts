@@ -145,7 +145,6 @@ export class RedisProxyCache implements IProxyCache {
 
     this.log.info('receivedSuccessResponse is done', { isLast, isSet, alsReq, proxyId });
     return isSet;
-    // todo: think what to return
   }
 
   async receivedErrorResponse(alsReq: AlsRequestDetails, proxyId: string): Promise<IsLastFailure> {
