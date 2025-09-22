@@ -34,7 +34,7 @@ import * as fixtures from '#test/fixtures';
 
 const port = parseInt(env.REDIS_STANDALONE_PORT || '');
 const portCluster = parseInt(env.REDIS_CLUSTER_PORT || '');
-// todo: use convict
+// use convict for dealing with evironment variables
 
 const redisProxyConfig = fixtures.redisProxyConfigDto({ port });
 const redisClusterProxyConfig = fixtures.redisClusterProxyConfigDto({
@@ -60,6 +60,14 @@ describe('RedisProxyCache Integration Tests -->', () => {
       await useCases.detectFinalErrorCallbackUseCase(proxyCache);
     });
 
+    test('should process last error callback taking into account preceding success callback', async () => {
+      await useCases.detectLastErrorCallbackWithPrecedingSuccessUseCase(proxyCache);
+    });
+
+    test('should process success ALS request', async () => {
+      await useCases.processSuccessAlsResponseUseCase(proxyCache);
+    });
+
     test('should check if ALS request waiting for a callback 11', async () => {
       await useCases.checkIfAlsRequestWaitingForCallbackUseCase(proxyCache);
     });
@@ -68,7 +76,7 @@ describe('RedisProxyCache Integration Tests -->', () => {
       await useCases.setSendToProxiesListOnceUseCase(proxyCache);
     });
 
-    test('should process process expired ALS keys', async () => {
+    test('should process expired ALS keys', async () => {
       await useCases.processExpiredAlsKeysUseCase(proxyCache);
     }, 8_000);
 

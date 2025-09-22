@@ -35,7 +35,8 @@ import { RedisProxyCache } from '#src/lib/storages';
 import { ValidationError } from '#src/lib/errors';
 
 import * as useCases from '#test/useCases';
-import * as fixtures from '../../../fixtures';
+import * as fixtures from '#test/fixtures';
+import * as testUtils from '#test/utils';
 
 const redisProxyConfig = fixtures.redisProxyConfigDto();
 
@@ -78,8 +79,18 @@ describe('RedisProxyCache Tests -->', () => {
       expect(isPassed).toBe(true);
     });
 
+    test('should process last error callback taking into account preceding success callback', async () => {
+      const isPassed = await useCases.detectLastErrorCallbackWithPrecedingSuccessUseCase(proxyCache);
+      expect(isPassed).toBe(true);
+    });
+
     test('should check if ALS request is waiting for a callback', async () => {
       const isPassed = await useCases.checkIfAlsRequestWaitingForCallbackUseCase(proxyCache);
+      expect(isPassed).toBe(true);
+    });
+
+    test('should process success ALS request', async () => {
+      const isPassed = await useCases.processSuccessAlsResponseUseCase(proxyCache);
       expect(isPassed).toBe(true);
     });
 
@@ -136,32 +147,33 @@ describe('RedisProxyCache Tests -->', () => {
   });
 
   describe('receivedSuccessResponse Method Tests -->', () => {
-    test('should delete sendToProxiesList on receivedSuccessResponse call', async () => {
+    test('should not delete sendToProxiesList on receivedSuccessResponse call', async () => {
       const alsReq = fixtures.alsRequestDetailsDto();
       const proxyIds = ['proxy1', 'proxy2'];
-      const isOk = await proxyCache.setSendToProxiesList(alsReq, proxyIds, 2);
-      expect(isOk).toBe(true);
+      const isSet = await proxyCache.setSendToProxiesList(alsReq, proxyIds, 2);
+      expect(isSet).toBe(true);
 
       const key = RedisProxyCache.formatAlsCacheKey(alsReq);
       let rawExistsResult = await redisClient.exists(key);
       expect(rawExistsResult).toBe(1);
 
-      const isDeleted = await proxyCache.receivedSuccessResponse(alsReq);
-      expect(isDeleted).toBe(true);
+      const isOk = await proxyCache.receivedSuccessResponse(alsReq, 'proxy1');
+      expect(isOk).toBe(true);
 
       rawExistsResult = await redisClient.exists(key);
-      expect(rawExistsResult).toBe(0);
+      expect(rawExistsResult).toBe(1);
     });
 
-    test('should delete sendToProxiesList only once', async () => {
+    test('should process receivedSuccessResponse only once for the same proxyId', async () => {
       const alsReq = fixtures.alsRequestDetailsDto();
-      await proxyCache.setSendToProxiesList(alsReq, ['proxyX'], 2);
+      const proxyId = 'proxy123';
+      await proxyCache.setSendToProxiesList(alsReq, [proxyId], 2);
 
-      let isDeleted = await proxyCache.receivedSuccessResponse(alsReq);
-      expect(isDeleted).toBe(true);
+      let isOk = await proxyCache.receivedSuccessResponse(alsReq, proxyId);
+      expect(isOk).toBe(true);
 
-      isDeleted = await proxyCache.receivedSuccessResponse(alsReq);
-      expect(isDeleted).toBe(false);
+      isOk = await proxyCache.receivedSuccessResponse(alsReq, proxyId);
+      expect(isOk).toBe(false);
     });
   });
 
@@ -178,7 +190,7 @@ describe('RedisProxyCache Tests -->', () => {
       await redisClient.flushall();
 
       const alsReq0 = fixtures.alsRequestDetailsDto();
-      const proxyIds = ['proxy1', 'proxy2'];
+      const proxyIds = [`proxy-1${testUtils.randomIntSting()}`, `proxy-2${testUtils.randomIntSting()}`];
       let isOk = await proxyCache.setSendToProxiesList(alsReq0, proxyIds, 2);
       expect(isOk).toBe(true);
 
@@ -204,7 +216,7 @@ describe('RedisProxyCache Tests -->', () => {
       await redisClient.flushall();
 
       const alsReq0 = fixtures.alsRequestDetailsDto();
-      const proxyIds = ['proxy1', 'proxy2'];
+      const proxyIds = ['proxy1111', 'proxy2222'];
       let isOk = await proxyCache.setSendToProxiesList(alsReq0, proxyIds, 2);
       expect(isOk).toBe(true);
 

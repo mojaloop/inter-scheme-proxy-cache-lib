@@ -28,6 +28,7 @@
 import { setTimeout as sleep } from 'node:timers/promises';
 import { IProxyCache } from '#src/types';
 import * as fixtures from '#test/fixtures';
+import * as testUtils from '#test/utils';
 
 /*
   Use cases to check any IProxyCache implementations.
@@ -38,11 +39,11 @@ import * as fixtures from '#test/fixtures';
 export const proxyMappingUseCase = async (proxyCache: IProxyCache) => {
   expect(proxyCache.isConnected).toBe(true);
 
-  const dfspId = `dfsp-${randomIntSting()}`;
+  const dfspId = `dfsp-${testUtils.randomIntSting()}`;
   let noProxyId = await proxyCache.lookupProxyByDfspId(dfspId);
   expect(noProxyId).toBeNull();
 
-  const proxyId = `proxy-${randomIntSting()}`;
+  const proxyId = `proxy-${testUtils.randomIntSting()}`;
   const isAdded = await proxyCache.addDfspIdToProxyMapping(dfspId, proxyId);
   expect(isAdded).toBe(true);
 
@@ -73,8 +74,36 @@ export const detectFinalErrorCallbackUseCase = async (proxyCache: IProxyCache) =
   isLast = await proxyCache.receivedErrorResponse(alsReq, 'proxyB');
   expect(isLast).toBe(false);
 
+  let isPending = await proxyCache.isPendingCallback(alsReq, 'proxyC');
+  expect(isPending).toBe(true);
+
   isLast = await proxyCache.receivedErrorResponse(alsReq, 'proxyC');
   expect(isLast).toBe(true);
+
+  isPending = await proxyCache.isPendingCallback(alsReq, 'proxyC');
+  expect(isPending).toBe(false);
+
+  return true;
+};
+
+export const detectLastErrorCallbackWithPrecedingSuccessUseCase = async (proxyCache: IProxyCache) => {
+  const alsReq = fixtures.alsRequestDetailsDto();
+  const proxyIds = ['proxyAA', 'proxyBB'];
+
+  const isSet = await proxyCache.setSendToProxiesList(alsReq, proxyIds, 10);
+  expect(isSet).toBe(true);
+
+  const isOk = await proxyCache.receivedSuccessResponse(alsReq, 'proxyAA');
+  expect(isOk).toBe(true);
+
+  let isPending = await proxyCache.isPendingCallback(alsReq, 'proxyBB');
+  expect(isPending).toBe(true);
+
+  const isLastWithoutSuccess = await proxyCache.receivedErrorResponse(alsReq, 'proxyBB');
+  expect(isLastWithoutSuccess).toBe(false);
+
+  isPending = await proxyCache.isPendingCallback(alsReq, 'proxyBB');
+  expect(isPending).toBe(false);
 
   return true;
 };
@@ -86,10 +115,11 @@ export const checkIfAlsRequestWaitingForCallbackUseCase = async (proxyCache: IPr
   const isOk = await proxyCache.setSendToProxiesList(alsReq, proxyIds, 10);
   expect(isOk).toBe(true);
 
-  let isPending = await proxyCache.isPendingCallback(alsReq);
+  let isPending = await proxyCache.isPendingCallback(alsReq, 'proxyA');
+  expect(isPending).toBe(true);
   expect(isPending).toBe(true);
 
-  isPending = await proxyCache.isPendingCallback(fixtures.alsRequestDetailsDto({ type: 'XXX' }));
+  isPending = await proxyCache.isPendingCallback(fixtures.alsRequestDetailsDto({ type: 'XXX' }), 'proxyB');
   expect(isPending).toBe(false);
 
   return true;
@@ -141,6 +171,24 @@ export const processExpiredAlsKeysUseCase = async (proxyCache: IProxyCache) => {
   return true;
 };
 
-function randomIntSting(): string {
-  return String(Date.now()).substring(9);
-}
+export const processSuccessAlsResponseUseCase = async (proxyCache: IProxyCache) => {
+  const alsReq = fixtures.alsRequestDetailsDto();
+  const proxyIds = ['proxyAA', `proxyBB`];
+
+  const isSet = await proxyCache.setSendToProxiesList(alsReq, proxyIds, 5);
+  expect(isSet).toBe(true);
+
+  let isOk = await proxyCache.receivedSuccessResponse(alsReq, 'wrongProxy');
+  expect(isOk).toBe(false);
+
+  isOk = await proxyCache.receivedSuccessResponse(alsReq, 'proxyAA');
+  expect(isOk).toBe(true);
+
+  let isPending = await proxyCache.isPendingCallback(alsReq, 'proxyAA');
+  expect(isPending).toBe(false);
+
+  isPending = await proxyCache.isPendingCallback(alsReq, 'proxyBB');
+  expect(isPending).toBe(true);
+
+  return true;
+};
