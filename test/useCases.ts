@@ -117,7 +117,6 @@ export const checkIfAlsRequestWaitingForCallbackUseCase = async (proxyCache: IPr
 
   let isPending = await proxyCache.isPendingCallback(alsReq, 'proxyA');
   expect(isPending).toBe(true);
-  expect(isPending).toBe(true);
 
   isPending = await proxyCache.isPendingCallback(fixtures.alsRequestDetailsDto({ type: 'XXX' }), 'proxyB');
   expect(isPending).toBe(false);
