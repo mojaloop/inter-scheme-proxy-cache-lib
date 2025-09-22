@@ -44,7 +44,7 @@
     "wait-4-docker": "./docker/wait-for-containers.sh"
   },
   "dependencies": {
-    "@mojaloop/central-services-logger": "11.10.0",
+    "@mojaloop/central-services-logger": "11.10.1",
     "ajv": "8.17.1",
     "convict": "6.2.4",
     "fast-safe-stringify": "2.1.1",
@@ -56,8 +56,8 @@
     "@types/convict": "6.1.6",
     "@types/jest": "30.0.0",
     "@types/node": "24.5.2",
-    "@typescript-eslint/eslint-plugin": "8.44.0",
-    "@typescript-eslint/parser": "8.44.0",
+    "@typescript-eslint/eslint-plugin": "8.44.1",
+    "@typescript-eslint/parser": "8.44.1",
     "dotenv": "17.2.2",
     "eslint": "9.36.0",
     "eslint-config-prettier": "10.1.8",

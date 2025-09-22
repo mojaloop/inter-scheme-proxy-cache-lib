@@ -136,7 +136,7 @@ export class RedisProxyCache implements IProxyCache {
   async receivedSuccessResponse(alsReq: AlsRequestDetails, proxyId: string): Promise<boolean> {
     const isPending = await this.isPendingCallback(alsReq, proxyId);
     if (!isPending) {
-      this.log.info('receivedSuccessResponse is skipped', { isPending, alsReq, proxyId });
+      this.log.verbose('receivedSuccessResponse is skipped (not ISDf)', { isPending, alsReq, proxyId });
       return false;
     }
 
@@ -423,11 +423,9 @@ export class RedisProxyCache implements IProxyCache {
     ]);
 
     const isLast = delCount === 1 && card === 0;
-    this.log.verbose('isLastCallback is done:', { isLast, key });
     let hadSuccess = false;
 
     if (isLast) {
-      // todo: delete also :success key
       const [delKeyCount, delExpiryCount, delSuccessCount] = await Promise.all([
         this.redisClient.del(key),
         this.redisClient.del(RedisProxyCache.formatAlsCacheExpiryKey(alsReq)),
