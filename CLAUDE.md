@@ -72,7 +72,7 @@ src/
 
 The library uses environment variables for configuration:
 - `PROXY_CACHE_LOG_LEVEL` - Controls logging verbosity (default: warn)
-- `PROXY_CACHE_DEFAULT_TTL_SEC` - Default cache TTL (default: 30 seconds)
+- `PROXY_CACHE_DEFAULT_TTL_SEC` - Default cache TTL (default: 20 seconds)
 
 ## Code Style
 

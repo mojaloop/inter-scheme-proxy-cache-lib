@@ -64,7 +64,7 @@ The library supports the following storage types:
 | Env Variable Name           | Default Value | Description                        |
 |-----------------------------|---------------|------------------------------------|
 | PROXY_CACHE_LOG_LEVEL       | `warn`        | The log level for the proxyCache |
-| PROXY_CACHE_DEFAULT_TTL_SEC | `30`          | Default cache TTL for sendToProxiesList keys |
+| PROXY_CACHE_DEFAULT_TTL_SEC | `20`          | Default cache TTL for sendToProxiesList keys |
 
 
 ### Requirements
