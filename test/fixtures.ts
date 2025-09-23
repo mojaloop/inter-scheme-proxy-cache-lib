@@ -20,9 +20,9 @@ export const redisClusterProxyConfigDto = ({
 });
 
 export const alsRequestDetailsDto = ({
-  sourceId = `source-${testUtils.randomIntSting()}`,
+  sourceId = `source-${testUtils.randomIntString()}`,
   type = 'MSISDN', // use enum for type
-  partyId = `party-${testUtils.randomIntSting()}`,
+  partyId = `party-${testUtils.randomIntString()}`,
 } = {}): AlsRequestDetails => ({
   sourceId,
   type,

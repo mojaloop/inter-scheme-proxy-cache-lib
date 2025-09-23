@@ -190,7 +190,7 @@ describe('RedisProxyCache Tests -->', () => {
       await redisClient.flushall();
 
       const alsReq0 = fixtures.alsRequestDetailsDto();
-      const proxyIds = [`proxy-1${testUtils.randomIntSting()}`, `proxy-2${testUtils.randomIntSting()}`];
+      const proxyIds = [`proxy-1${testUtils.randomIntString()}`, `proxy-2${testUtils.randomIntString()}`];
       let isOk = await proxyCache.setSendToProxiesList(alsReq0, proxyIds, 2);
       expect(isOk).toBe(true);
 

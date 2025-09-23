@@ -39,11 +39,11 @@ import * as testUtils from '#test/utils';
 export const proxyMappingUseCase = async (proxyCache: IProxyCache) => {
   expect(proxyCache.isConnected).toBe(true);
 
-  const dfspId = `dfsp-${testUtils.randomIntSting()}`;
+  const dfspId = `dfsp-${testUtils.randomIntString()}`;
   let noProxyId = await proxyCache.lookupProxyByDfspId(dfspId);
   expect(noProxyId).toBeNull();
 
-  const proxyId = `proxy-${testUtils.randomIntSting()}`;
+  const proxyId = `proxy-${testUtils.randomIntString()}`;
   const isAdded = await proxyCache.addDfspIdToProxyMapping(dfspId, proxyId);
   expect(isAdded).toBe(true);
 
