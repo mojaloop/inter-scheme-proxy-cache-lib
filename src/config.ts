@@ -12,7 +12,7 @@ const config = convict<LibConfig>({
   defaultTtlSec: {
     doc: 'Default cache TTL for sendToProxiesList keys.',
     format: Number,
-    default: 30,
+    default: 20,
     env: 'PROXY_CACHE_DEFAULT_TTL_SEC',
   },
 });

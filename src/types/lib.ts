@@ -17,14 +17,14 @@ export interface IProxyCache {
    */
   setSendToProxiesList: (alsRequest: AlsRequestDetails, proxyIds: string[], ttlSec: number) => Promise<boolean>;
 
-  receivedSuccessResponse: (alsRequest: AlsRequestDetails) => Promise<boolean>;
+  receivedSuccessResponse: (alsRequest: AlsRequestDetails, proxyId: string) => Promise<boolean>;
 
   /**
    *  Returns `true` if the last failed response is detected. In that case Parties error callback should be sent.
    */
   receivedErrorResponse: (alsRequest: AlsRequestDetails, proxyId: string) => Promise<IsLastFailure>;
 
-  isPendingCallback: (alsRequest: AlsRequestDetails) => Promise<boolean>;
+  isPendingCallback: (alsRequest: AlsRequestDetails, proxyId: string) => Promise<boolean>;
 
   processExpiredAlsKeys: (callbackFn: ProcessExpiryKeyCallback, batchSize: number) => Promise<unknown>;
   processExpiredProxyGetPartiesKeys: (callbackFn: ProcessExpiryKeyCallback, batchSize: number) => Promise<unknown>;

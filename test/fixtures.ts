@@ -1,5 +1,5 @@
-import { randomUUID } from 'node:crypto';
-import { RedisProxyCacheConfig, RedisClusterProxyCacheConfig, AlsRequestDetails } from '../src/types';
+import { RedisProxyCacheConfig, RedisClusterProxyCacheConfig, AlsRequestDetails } from '#src/types';
+import * as testUtils from '#test/utils';
 
 export const redisProxyConfigDto = ({
   host = '127.0.0.1',
@@ -20,9 +20,9 @@ export const redisClusterProxyConfigDto = ({
 });
 
 export const alsRequestDetailsDto = ({
-  sourceId = `test-source-${Date.now()}`,
+  sourceId = `source-${testUtils.randomIntString()}`,
   type = 'MSISDN', // use enum for type
-  partyId = `party-${randomUUID()}`,
+  partyId = `party-${testUtils.randomIntString()}`,
 } = {}): AlsRequestDetails => ({
   sourceId,
   type,

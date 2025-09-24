@@ -39,7 +39,7 @@ export class RedisProxyCache implements IProxyCache {
   private readonly redisClient: RedisClient;
   private readonly log: ILogger;
   private readonly defaultTtlSec = config.get('defaultTtlSec');
-  private isCluster = false;
+  private readonly isCluster: boolean = false;
 
   constructor(
     private readonly proxyConfig: RedisConfig,
@@ -94,9 +94,9 @@ export class RedisProxyCache implements IProxyCache {
     ttlSec: number = this.defaultTtlSec,
   ): Promise<boolean> {
     const key = RedisProxyCache.formatProxyGetPartiesExpiryKey(alsReq, proxyId);
-    const expiryTime = Date.now() + ttlSec * 1000;
+    const expiryTime = this.calculateExpiryTimestampInMs(ttlSec);
     const result = await this.redisClient.set(key, expiryTime);
-    this.log.debug('setProxyGetPartiesTimeout is done', { result, key, expiryTime });
+    this.log.verbose('setProxyGetPartiesTimeout is done', { result, key, expiryTime });
     return result === REDIS_SUCCESS;
   }
 
@@ -111,9 +111,9 @@ export class RedisProxyCache implements IProxyCache {
     }
 
     const uniqueProxyIds = [...new Set(proxyIds)];
-    const ttl = ttlSec ?? this.defaultTtlSec;
-    const expiryTime = Date.now() + ttl * 1000;
+    const expiryTime = this.calculateExpiryTimestampInMs(ttlSec);
     let isOk;
+
     if (this.isCluster) {
       // pipeline is not supported in cluster mode for multi-key operations
       const [addedCount, expirySetResult] = await Promise.all([
@@ -129,66 +129,37 @@ export class RedisProxyCache implements IProxyCache {
       isOk = addedCount === uniqueProxyIds.length;
     }
 
-    this.log.verbose('setSendToProxiesList is done', { isOk, key, uniqueProxyIds, ttl });
+    this.log.verbose('setSendToProxiesList is done', { isOk, key, uniqueProxyIds, expiryTime });
     return isOk;
   }
 
-  async receivedSuccessResponse(alsReq: AlsRequestDetails): Promise<boolean> {
-    const key = RedisProxyCache.formatAlsCacheKey(alsReq);
-    const expiryKey = RedisProxyCache.formatAlsCacheExpiryKey(alsReq);
-    let isDeleted;
-    let logMeta;
-    if (this.isCluster) {
-      const [delResult, delExpiryResult] = await Promise.all([
-        this.redisClient.del(key),
-        this.redisClient.del(expiryKey),
-      ]);
-      isDeleted = delResult === 1 && delExpiryResult === 1;
-      logMeta = { isDeleted, delResult, delExpiryResult };
-    } else {
-      const delResult = await this.executePipeline([
-        ['del', key],
-        ['del', expiryKey],
-      ]);
-      isDeleted = delResult[0] === 1 && delResult[1] === 1;
-      logMeta = { isDeleted, delResult };
+  async receivedSuccessResponse(alsReq: AlsRequestDetails, proxyId: string): Promise<boolean> {
+    const isPending = await this.isPendingCallback(alsReq, proxyId);
+    if (!isPending) {
+      this.log.verbose('receivedSuccessResponse is skipped (not ISDf)', { isPending, alsReq, proxyId });
+      return false;
     }
-    this.log.debug('sendToProxiesList is deleted', logMeta);
-    return isDeleted;
+
+    const isSet = await this.storeSuccessAlsResponse(alsReq, proxyId);
+    const { isLast } = await this.isLastCallback(alsReq, proxyId);
+
+    this.log.info('receivedSuccessResponse is done', { isLast, isSet, alsReq, proxyId });
+    return isSet;
   }
 
   async receivedErrorResponse(alsReq: AlsRequestDetails, proxyId: string): Promise<IsLastFailure> {
-    const key = RedisProxyCache.formatAlsCacheKey(alsReq);
-    const expiryKey = RedisProxyCache.formatAlsCacheExpiryKey(alsReq);
-
-    const [delCount, card] = await this.executePipeline([
-      ['srem', key, proxyId],
-      ['scard', key],
-    ]);
-
-    const isLast = delCount === 1 && card === 0;
-
-    if (isLast) {
-      const [delKeyCount, delExpiryCount] = await Promise.all([
-        this.redisClient.del(key),
-        this.redisClient.del(expiryKey),
-      ]);
-      this.log.info('receivedErrorResponse: last response received, keys were deleted', {
-        isLast,
-        delKeyCount,
-        delExpiryCount,
-      });
-    }
-
-    this.log.info('receivedErrorResponse is done', { isLast, alsReq, delCount, card });
-    return isLast;
+    const { isLast, card, hadSuccess } = await this.isLastCallback(alsReq, proxyId);
+    const isLastWithoutSuccess = isLast && !hadSuccess;
+    this.log.info('receivedErrorResponse is done', { isLast, isLastWithoutSuccess, alsReq, card, proxyId });
+    return isLastWithoutSuccess;
   }
 
-  async isPendingCallback(alsReq: AlsRequestDetails): Promise<boolean> {
+  async isPendingCallback(alsReq: AlsRequestDetails, proxyId: string = ''): Promise<boolean> {
+    if (!proxyId) return false;
     const key = RedisProxyCache.formatAlsCacheKey(alsReq);
-    const card = await this.redisClient.scard(key);
-    this.log.debug('isPendingCallbacks for alsReq is done', { key, card });
-    return card > 0;
+    const isMember = await this.redisClient.sismember(key, proxyId);
+    this.log.verbose('isPendingCallback for alsReq is done', { key, isMember, proxyId });
+    return isMember === 1;
   }
 
   // todo: refactor to use processAllNodesStream
@@ -294,13 +265,13 @@ export class RedisProxyCache implements IProxyCache {
     try {
       const results = await pipeline.exec();
       if (!results) {
-        throw new Error('no pipeline results');
+        throw new Error('no results from pipeline.exec()');
       }
       return results.map((result, index) => {
         if (result[0]) {
           const errMessage = `error in command ${index + 1}: ${result[0].message}`;
           this.log.warn(errMessage, result[0]);
-          // todo: think, if we need to "undo" successful commands, if they finished before the error
+          // think, if we need to "undo" successful commands, if they finished before the error
           throw new Error(errMessage);
         }
         return result[1];
@@ -333,7 +304,7 @@ export class RedisProxyCache implements IProxyCache {
     const result = await Promise.all(
       this.redisNodes.map((node) => this.processSingleNodeStream(node, options, callbackFn)),
     );
-    this.log.debug('processAllNodesStream is done', { result });
+    this.log.info('processAllNodesStream is done', { result });
     return result;
   }
 
@@ -373,7 +344,7 @@ export class RedisProxyCache implements IProxyCache {
         stream.resume();
       });
       stream.on('end', () => {
-        this.log.debug('processNodeStream is done', { result });
+        this.log.info('processNodeStream is done', { result });
         clearTimer();
         resolve(result);
       });
@@ -385,27 +356,96 @@ export class RedisProxyCache implements IProxyCache {
     });
   }
 
-  private async processExpiryKey(expiryKey: string, callbackFn: ProcessExpiryKeyCallback): Promise<any> {
-    const actualKey = expiryKey.replace(':expiresAt', '');
+  // todo: add tests for successKey case
+  private async processExpiryKey(expiryKey: string, callbackFn: ProcessExpiryKeyCallback): Promise<unknown> {
     const expiresAt = await this.redisClient.get(expiryKey);
-
     if (Number(expiresAt) >= Date.now()) return;
 
+    const actualKey = expiryKey.replace(':expiresAt', '');
     // prettier-ignore
     const deleteKeys = this.isCluster
       ? () => Promise.all([this.redisClient.del(actualKey), this.redisClient.del(expiryKey)])
       : () => this.executePipeline([['del', actualKey], ['del', expiryKey]]);
 
-    return Promise.all([
-      callbackFn(actualKey).catch((err) => {
-        this.log.warn(`processExpiryKey callback error ${expiryKey}`, err);
-        return Promise.resolve();
-      }),
+    const alsReq = RedisProxyCache.extractAlsRequestDetails(expiryKey);
+    const successKey = RedisProxyCache.formatAlsCacheSuccessKey(alsReq);
+    const proxyId = await this.redisClient.get(successKey);
+
+    const jobs = [
       deleteKeys().catch((err) => {
-        this.log.error(`processExpiryKey key deletion error ${expiryKey}`, err);
-        return Promise.reject(err);
+        this.log.error(`processExpiryKey key deletion error ${expiryKey}: `, err);
+        return err;
       }),
+    ];
+
+    if (!proxyId) {
+      // no success callback
+      jobs.push(
+        callbackFn(actualKey).catch((err) => {
+          this.log.warn(`processExpiryKey callbackFn error ${expiryKey}: `, err);
+          return err;
+        }),
+      );
+    } else {
+      this.log.info('expired ALS request has success callback', { alsReq, expiryKey, proxyId });
+      jobs.push(
+        this.redisClient.del(successKey).catch((err) => {
+          this.log.warn(`processExpiryKey delete successKey error: `, err);
+          return err;
+        }),
+      );
+    }
+
+    return Promise.all(jobs);
+  }
+
+  private async storeSuccessAlsResponse(alsReq: AlsRequestDetails, proxyId: string): Promise<boolean> {
+    const key = RedisProxyCache.formatAlsCacheSuccessKey(alsReq);
+    const response = await this.redisClient.set(key, proxyId);
+    const isSet = response === REDIS_SUCCESS;
+    this.log.info('storeSuccessAlsResponse is done', { key, proxyId, isSet });
+    return isSet;
+  }
+
+  // prettier-ignore
+  private async isLastCallback(alsReq: AlsRequestDetails, proxyId: string): Promise<{
+    isLast: boolean;
+    key: string;
+    card: unknown; // cardinality (number of elements) of the set
+    hadSuccess: boolean; // if success callback was received during the inter-scheme discovery flow
+  }> {
+    const key = RedisProxyCache.formatAlsCacheKey(alsReq);
+
+    const [delCount, card] = await this.executePipeline([
+      ['srem', key, proxyId],
+      ['scard', key],
     ]);
+
+    const isLast = delCount === 1 && card === 0;
+    let hadSuccess = false;
+
+    if (isLast) {
+      const [delKeyCount, delExpiryCount, delSuccessCount] = await Promise.all([
+        this.redisClient.del(key),
+        this.redisClient.del(RedisProxyCache.formatAlsCacheExpiryKey(alsReq)),
+        this.redisClient.del(RedisProxyCache.formatAlsCacheSuccessKey(alsReq)),
+      ]);
+      this.log.verbose('received last callback, keys were deleted', { delKeyCount, delExpiryCount, delSuccessCount });
+      hadSuccess = delSuccessCount === 1;
+    }
+
+    const result = {
+      isLast, hadSuccess, key, card,
+    }
+    this.log.info('isLastCallback is done:', result);
+    return result;
+  }
+
+  private calculateExpiryTimestampInMs(ttlSec: number = this.defaultTtlSec): number {
+    if (typeof ttlSec === 'number' && ttlSec > 0) {
+      return Date.now() + ttlSec * 1000;
+    }
+    throw new Error(`Invalid TTL value: ${ttlSec}. Expected a positive number`);
   }
 
   static formatAlsCacheKey(alsReq: AlsRequestDetails): string {
@@ -417,6 +457,10 @@ export class RedisProxyCache implements IProxyCache {
     return `${RedisProxyCache.formatAlsCacheKey(alsReq)}:expiresAt`;
   }
 
+  static formatAlsCacheSuccessKey(alsReq: AlsRequestDetails): string {
+    return `${RedisProxyCache.formatAlsCacheKey(alsReq)}:success`;
+  }
+
   static formatProxyGetPartiesExpiryKey(alsReq: AlsRequestDetails, proxyId: string): string {
     return `${REDIS_KEYS_PREFIXES.getParties}:${proxyId}:${alsReq.sourceId}:${alsReq.type}:${alsReq.partyId}:expiresAt`;
   }
@@ -424,5 +468,18 @@ export class RedisProxyCache implements IProxyCache {
   static formatDfspCacheKey(dfspId: string): string {
     validation.validateDfspId(dfspId);
     return `${REDIS_KEYS_PREFIXES.dfsp}:${dfspId}`;
+  }
+
+  static extractAlsRequestDetails(key: string): AlsRequestDetails {
+    const [prefix, sourceId, type, partyId] = key.split(':');
+
+    if (!prefix || !(prefix in REDIS_KEYS_PREFIXES)) {
+      throw new Error(`Invalid key prefix: ${prefix}`);
+    }
+    if (!sourceId || !type || !partyId) {
+      throw new Error(`No required ALS request details extracted from cache key ${key}!`);
+    }
+
+    return { sourceId, type, partyId };
   }
 }
