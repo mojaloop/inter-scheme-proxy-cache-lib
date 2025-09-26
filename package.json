@@ -1,6 +1,6 @@
 {
   "name": "@mojaloop/inter-scheme-proxy-cache-lib",
-  "version": "2.7.0-snapshot.2",
+  "version": "2.7.1",
   "description": "Common component, that provides scheme proxy caching mapping (ISPC)",
   "author": "Eugen Klymniuk (geka-evk)",
   "contributors": [
