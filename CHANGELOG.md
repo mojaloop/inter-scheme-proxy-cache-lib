@@ -2,6 +2,34 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.8.0](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/compare/v2.3.1...v2.8.0) (2025-09-26)
+
+
+### Features
+
+* add grype src scan pi28 ([#29](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/issues/29)) ([5c68178](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/5c68178d36624d89dd824026d37efc37380a3f96))
+* add grype src scan plus update deps ([#28](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/issues/28)) ([aa5b4fc](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/aa5b4fcc541f21a274b632bdc07bc660d1ee21e9))
+* bump up node to v22.15.0 ([#25](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/issues/25)) ([1480514](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/148051462069cd354b0c17790fb42b4cdddaaf03))
+* **csi-1266:** added isPendingCallback and proxyGetParties timeout methods ([#23](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/issues/23)) ([871b9bc](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/871b9bc673615144f23a267276c7fac8c3020bdb))
+* **csi-1817:** improved inter-scheme discovery flow ([#27](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/issues/27)) ([9138826](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/9138826337b755a2378a0e2704c0489ef6098a13))
+
+
+### Bug Fixes
+
+* **csi-1247:** returned ConnectionStatus from connect() ([#21](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/issues/21)) ([7d71e66](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/7d71e667727bd5512fbdbba987a466b1a9f7112c))
+* is cluster determination using type ([#24](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/issues/24)) ([ecf2bb4](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/ecf2bb4740559857ceb9690eb2377604f80b0ee5))
+
+
+### Chore
+
+* bump package version ([#20](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/issues/20)) ([ac41928](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/ac41928abc96497b12dbd3718829d18905d4bc5b))
+* bump package version and rm dep ver range ([#17](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/issues/17)) ([07551ac](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/07551acbc971aec13904eeae3b2bf62c3064fd57))
+* maintenance updates ([#15](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/issues/15)) ([4bf8f18](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/4bf8f1861eb7fb5361ecdcbe2582d8e6137f8885))
+* maintenance updates ([#16](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/issues/16)) ([9904b29](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/9904b295914bbbda9ed89eb27a2f4fe9ab31820b))
+* update dependencies ([#26](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/issues/26)) ([4c91d8e](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/4c91d8e8aa668323c3e71d9b14ea5f9dbef0fb8d))
+* update master to main in circleci config ([#18](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/issues/18)) ([9e8840b](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/9e8840be4607825f6ce798819b025d0d5f4b4ea0))
+* update readme to sync cicd ([#19](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/issues/19)) ([cabf8d0](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/commit/cabf8d03e5cf37dcba881f32b36af7fef2ef9e95))
+
 ## [2.4.0](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/compare/v2.4.0-snapshot.3...v2.4.0) (2025-03-25)
 
 ### [2.3.1](https://github.com/mojaloop/inter-scheme-proxy-cache-lib/compare/v2.3.0...v2.3.1) (2024-12-11)
