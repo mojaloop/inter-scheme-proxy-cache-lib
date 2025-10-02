@@ -104,4 +104,3 @@ npm run docs
 ## Collaborators
 
 - [Eugen Klymniuk](https://github.com/geka-evk)
-- [Juan Correa](https://github.com/gibaros)
