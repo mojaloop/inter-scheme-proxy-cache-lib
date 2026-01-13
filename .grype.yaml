@@ -8,7 +8,7 @@ disabled: false
 # Vulnerability ignore rules
 # Add specific CVEs here if they are false positives or acceptable risks
 ignore:
-  - vulnerability: "GHSA-52f5-9888-hmc6"
+  - vulnerability: GHSA-52f5-9888-hmc6
     package:
       name: "tmp"
       version: "0.0.33"
