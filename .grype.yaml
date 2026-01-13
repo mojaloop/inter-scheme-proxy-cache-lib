@@ -12,7 +12,7 @@ ignore:
     package:
       name: "tmp"
       version: "0.0.33"
-    reason: "Low vulnerability only used in tests. ioredis-mock@8.12.0 requires tmp@^0.0.33 via fengari@0.1.4 No patched version available for tmp""
+    reason: "Low vulnerability only used in tests. ioredis-mock@8.12.0 requires tmp@^0.0.33 via fengari@0.1.4. No patched version available for tmp."
 
 # Output formats for scan results
 output:
