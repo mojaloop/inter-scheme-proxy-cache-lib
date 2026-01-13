@@ -16,6 +16,11 @@ ignore:
   #     name: "package-name"
   #     version: "1.0.0"
   #   reason: "Not exploitable in our usage context"
+  - vulnerability: "GHSA-52f5-9888-hmc6"
+    package:
+      name: "tmp"
+      version: "1.0.0"
+    reason: "Low vulnerability only used in tests. ioredis-mock@8.12.0 requires tmp@^0.0.33 via fengari@0.1.4 No patched version available for tmp""
 
 # Output formats for scan results
 output:

@@ -55,7 +55,7 @@
     "@commitlint/config-conventional": "20.3.1",
     "@types/convict": "6.1.6",
     "@types/jest": "30.0.0",
-    "@types/node": "25.0.7",
+    "@types/node": "25.0.8",
     "@typescript-eslint/eslint-plugin": "8.53.0",
     "@typescript-eslint/parser": "8.53.0",
     "dotenv": "17.2.3",
@@ -82,7 +82,8 @@
   "overrides": {
     "cross-spawn": "7.0.5",
     "esbuild": "0.25.0",
-    "glob": "9.3.5"
+    "glob": "9.3.5",
+    "js-yaml": "4.1.1"
   },
   "engines": {
     "node": ">=22.15.0"
