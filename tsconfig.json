@@ -1,6 +1,8 @@
 {
   "compilerOptions": {
-    "baseUrl": "./",
+    // TS 6.x: tsup's dts build injects `baseUrl` (removed from this config) into rollup-plugin-dts,
+    // which triggers deprecation error TS5101 without this bridge flag. Remove once tsup stops injecting baseUrl.
+    "ignoreDeprecations": "6.0",
     "rootDir": "./src",
     "paths": {
       "#src/*": ["./src/*"]
