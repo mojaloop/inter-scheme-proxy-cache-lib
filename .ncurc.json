@@ -1,0 +1,10 @@
+{
+  "reject": [
+    "@types/node",
+    "why-types-node: its major must match the Node runtime major in .nvmrc (24); a higher major only weakens type checking (the TS toolchain accepts newer-Node-only APIs that crash at runtime); bump together with the runtime",
+    "typescript",
+    "why-typescript: 7.0.2 (2026-09-17) fails npm install with ERESOLVE because the typescript-eslint parser 8.70.0 declares a peer range of typescript >=4.8.4 <6.1.0, and the 7.x package ships Go-built tsgo binaries that make the CircleCI Grype source scan report 16 High Go stdlib CVEs (seen in ml-testing-toolkit-shared-lib); stay on 6.x until typescript-eslint supports 7 and the native binaries are rebuilt on a patched Go",
+    "ioredis",
+    "why-ioredis: 6.0.0 (2026-09-17) fails npm install with ERESOLVE because ioredis-mock 8.13.1 (latest) declares a peer range of ioredis ^5; upgrade together with ioredis-mock once it supports 6"
+  ]
+}
